@@ -3,18 +3,14 @@
 # Hermes - Containerized high performance bioinformatics workflow execution
 
 ##Dependencies
-Please ensure that the latest version of docker is installed on all sites you plan to execute on and that your user is in the list of users that can access the docker daemon.
 
-To install docker visit:
-https://docs.docker.com/linux/step_one/
+* Supported operating systems Linux distributions, however Hermes has only been tested in Ubuntu Linux 14.04 and 16.04
 
-SSH server must be up and running on all sites you plan to execute on and password-less access via SSH keys must be enabled. All sites must be accessible through the same SSH key which must NOT be protected by a password (passphrase).
+* Please ensure that the latest version of docker is installed on all sites you plan to execute on and that your user is in the list of users that can access the docker daemon. To install docker visit: https://docs.docker.com/linux/step_one/
 
-To setup password-less SSH access follow this guide:
-http://www.tecmint.com/ssh-passwordless-login-using-ssh-keygen-in-5-easy-steps/
+* SSH server must be up and running on all sites you plan to execute on and password-less access via SSH keys must be enabled. All sites must be accessible through the same SSH key which must NOT be protected by a password (passphrase). To setup password-less SSH access follow this guide: http://www.tecmint.com/ssh-passwordless-login-using-ssh-keygen-in-5-easy-steps/
 
-You must also install Java Oracle version 8. 
-Hermes requires a Linux environment, however it has only been tested in Ubuntu Linux 14.04 and 16.04.
+* You must also install Java Oracle version 8. 
 
 ## Step 1 - Configuration
 Configuring Hermes is easy and straightforward. Open the configuration.config file in the root hermes projectfolder, the only parameter that you need to edit is the pathToSSHKEy.
@@ -26,13 +22,13 @@ Here you must provide the path to the SSH Private key that will be used to conne
 Please note, if external sites (other than local) are utilized, the SSH port 22 must be open and the SSH server listening, on the machine here Hermes is running.
 
 ## Step 2 - Configuring execution sites
-Navigate within the /Sites/ folder located in the root hermes project folder. You can add execution sites by placing *.site files within this folder. The default, local.site file already exists for your reference. Within the .site file state a name for the site, for the hostname (IP address) of the site, please provide the global external IP address, or you can provide localhost in case the site is the one Hermes is running on.
+Navigate within the /Sites/ folder located in the root hermes project folder. You can add execution sites by placing .site files within this folder. The default, local.site file already exists for your reference. Within the .site file state a name for the site, for the hostname (IP address) of the site, please provide the global external IP address, or you can provide localhost in case the site is the one Hermes is running on.
 
 * provide a value for name
 * provide a value for username
 * provide a value for ipAddress (or hostname), or localhost if local
 
-You must also provide the username and the ssh listening port on the site (default value is 22).
+You must also the ssh listening port on the site (default value is 22).
 
 You can add as many sites as you wish by creating *.site files within this folder and hermes will automatically utilize them and load balance the work between them. You do not need to have a local site, you can utilize remote sites exclusively if you wish.
 
