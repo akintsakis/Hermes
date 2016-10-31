@@ -1,0 +1,9 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<component>
+<name>catFiles</name>
+<path></path>
+<path2></path2>
+<execCommand>cat</execCommand>
+<slots>1</slots>
+<defaultRunTimeInMs>100</defaultRunTimeInMs>
+</component>

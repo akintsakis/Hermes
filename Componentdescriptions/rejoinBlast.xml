@@ -1,0 +1,8 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<component>
+<name>rejoinBlast</name>
+<path>/Hermes/Components/rejoinBlast/rejoinBlast.sh</path>
+<path2></path2>
+<slots>1</slots>
+<defaultRunTimeInMs>5000</defaultRunTimeInMs>
+</component>

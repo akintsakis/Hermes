@@ -1,0 +1,9 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<component>
+<name>metagenomicsNRAnnotation</name>
+<path>/Hermes/Components/metagenomicsNRAnnotation/blastTaxonomy.jar</path>
+<path2></path2>
+<slots>1</slots>
+<inputComplexities>input1=2*n^2;input2=3*n^2</inputComplexities>
+<defaultRunTimeInMs>100000</defaultRunTimeInMs>
+</component>

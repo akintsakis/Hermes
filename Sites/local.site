@@ -1,0 +1,11 @@
+#please provide a name for the site
+name=local
+
+#please provide the username of the ssh user on site
+username=thanos
+#please provide the global ip address of the site, or you can use localhost (but not 127.0.0.1) if running on same site as Hermes
+ipAddress=localhost
+sshHostPort=22
+
+
+

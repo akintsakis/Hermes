@@ -1,0 +1,8 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<component>
+<name>blastProtein</name>
+<path>/Hermes/Components/blast/bin/blastp</path>
+<path2></path2>
+<slots>1</slots>
+<inputComplexities>input1=2*n^2;input2=3*n^2</inputComplexities>
+</component>
