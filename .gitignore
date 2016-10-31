@@ -2,8 +2,3 @@
 *~
 WorkflowRunLogs/
 ComponentExecutionLogs/
-
-/Hermes/nbproject/
-/Hermes/build/
-/daemon/nbproject/
-/daemon/build/
