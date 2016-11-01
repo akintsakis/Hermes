@@ -40,7 +40,7 @@ To execute the pangenome analysis sample workflow you must navigate via a termin
 
 Hermes automatically runs the pangenome analysis sample workflow when no command line arguments are provided. The results of the workflow can be found in a folder in your home folder named hermes_workflow_results followed by the current date.
 
-In case you want to run a different workflow, the first provided argument points to the .graphml workflow description file, while the second argument is the ABSOLUTE path to the workflow inputs folder.
+In case you want to run a different workflow, the first provided argument is the path to the .graphml workflow description file, while the second argument is the path to the workflow inputs folder. Both paths are ABSOLUTE paths and do not include any bash supported characters like ~ or .
 
 For example, in order to run the also provided phylogenetic profiles workflow, the command would be:
 
