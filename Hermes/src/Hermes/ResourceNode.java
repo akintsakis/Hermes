@@ -145,7 +145,7 @@ public class ResourceNode extends Thread implements Comparable<ResourceNode> {
             System.out.println("Fatal error, IP address not provided in .site file... exiting...");
             System.exit(1);
         }
-        
+
         if (siteConfiguration.getProperty("ipAddress").equals(Configuration.globalConfig.globalMasterIpAddress) || siteConfiguration.getProperty("ipAddress").equals("localhost")) {
             masterIpAddress = "localhost";
             ipAddress = Configuration.globalConfig.globalMasterIpAddress;
@@ -156,7 +156,7 @@ public class ResourceNode extends Thread implements Comparable<ResourceNode> {
             masterIpAddress = Configuration.globalConfig.globalMasterIpAddress;
         }
 
-        sshHostUsername = siteConfiguration.getProperty("username");        
+        sshHostUsername = siteConfiguration.getProperty("username");
         if (sshHostUsername.equals("")) {
             System.out.println("Fatal error, username not provided in .site file... exiting...");
             System.exit(1);
@@ -197,11 +197,11 @@ public class ResourceNode extends Thread implements Comparable<ResourceNode> {
 
             boolean isAuthenticated = false;
             //if (Configuration.globalConfig.useKeyNotPasswordForSSHtoSites) {
-                File keyfile = new File(Configuration.globalConfig.sshKeyToAccessSites);
-                String keyfilePass = "";
-                isAuthenticated = conn.authenticateWithPublicKey(sshHostUsername, keyfile, keyfilePass);//conn.authenticateWithPassword(username, password);
+            File keyfile = new File(Configuration.globalConfig.sshKeyToAccessSites);
+            String keyfilePass = "";
+            isAuthenticated = conn.authenticateWithPublicKey(sshHostUsername, keyfile, keyfilePass);//conn.authenticateWithPassword(username, password);
             //} else {
-           //     isAuthenticated = conn.authenticateWithPassword(sshHostUsername, password);
+            //     isAuthenticated = conn.authenticateWithPassword(sshHostUsername, password);
             //}
 
             if (isAuthenticated == false) {
@@ -326,7 +326,7 @@ public class ResourceNode extends Thread implements Comparable<ResourceNode> {
 
         // WARNING REMOVES ALL CONTAINERS AND IMAGES
         // executeCommand("docker rm -f $(docker ps -a -q)", false, false);
-        //  executeCommand("docker rmi -f $(docker images -q)", false, false);
+        // executeCommand("docker rmi -f $(docker images -q)", false, false);
 
         /* launch new hermes workflow container */
         dockerBuildFolder = this.userHostHomePath + "/" + Configuration.globalConfig.hermesWorkingDirName + "/" + DataFile.currentFolder + "_myDockerBuild_toBeDeleted";
@@ -341,7 +341,7 @@ public class ResourceNode extends Thread implements Comparable<ResourceNode> {
         copyDir(conn, Configuration.globalConfig.locationOfHermesRootFolder + "/daemon/dist", dockerBuildFolder + "/dist/", true);
         copyDir(conn, Configuration.globalConfig.locationOfHermesRootFolder + "/ComponentMonitoring", dockerBuildFolder + "/ComponentMonitoring/", true);
         executeCommand("cd " + dockerBuildFolder + " && sed -i 's/updatePortNumber/" + String.valueOf(siteContainerSSHListeningPort) + "/g' Dockerfile", true, true);
-        System.out.println("Site: " + name + " Pulling docker image akintsakis/hermescomponents:latest (~2.5GB) ... if image does not exist locally it could take a while");
+        System.out.println("Site: " + name + " Pulling docker image akintsakis/hermescomponents:latest (~1.8GB) ... if image does not exist locally it could take a while");
         executeCommand("docker pull akintsakis/hermescomponents:latest", true, false);
         System.out.println("Site: " + name + " Building workflow container...");
         executeCommand("cd " + dockerBuildFolder + " && docker build -t " + Configuration.globalConfig.hermesWorkflowImageName + " --rm=true .", true, false);
