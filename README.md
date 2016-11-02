@@ -3,14 +3,17 @@
 # Hermes - Containerized high performance bioinformatics workflow execution
 
 ##Dependencies
+The following dependencies exist for ALL sites where execution is to take place.
 
-* Supported operating systems Linux distributions, however Hermes has only been tested in Ubuntu Linux 14.04 and 16.04
+* Supported operating systems include Linux distributions, however Hermes has only been tested in Ubuntu Linux 14.04 and 16.04
 
 * Please ensure that the latest version of docker is installed on all sites you plan to execute on and that your user is in the list of users that can access the docker daemon. To install docker visit: https://docs.docker.com/linux/step_one/
+In case your user on site is unable to access the Docker daemon, have a system administrator execute the following command: sudo usermod -aG docker <user_name>
 
 * SSH server must be up and running on all sites you plan to execute on and password-less access via SSH keys must be enabled. All sites must be accessible through the same SSH key which must NOT be protected by a password (passphrase). To setup password-less SSH access follow this guide: http://www.tecmint.com/ssh-passwordless-login-using-ssh-keygen-in-5-easy-steps/
+You should be able to connect to the localhost and all other provided sites passwordless. To test accessing the local site, run the command ssh <user_name>@localhost. You should be able to connect without any password prompt.
 
-* You must also install Java Oracle version 8. 
+* You must also install Java Oracle version 8 on all sites. 
 
 ## Step 1 - Configuration
 Configuring Hermes is easy and straightforward. Open the configuration.config file in the root hermes projectfolder, the only parameter that you need to edit is the pathToSSHKEy.
@@ -56,6 +59,6 @@ In case you want to run a larger analysis, you can use the input dataset located
 
 ## Common errors
 
-Hermes is a distributed computing platform and as such network errors may sometimes impede optimal execution. In case you encounter any such error, please re-run the workflow.
+Hermes is a distributed computing platform and as such network and authentication errors may sometimes impede optimal execution. Common errors include:
 
 * While an image is being pulled from dockerhub, the connection is reset. In this case you need to cancel (ctrl-c) and re-run the workflow.
