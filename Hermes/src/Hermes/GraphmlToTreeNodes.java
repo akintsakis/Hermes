@@ -480,7 +480,7 @@ public class GraphmlToTreeNodes {
         for (int i = 0; i < numOfRuns; i++) {
             ArrayList<DataFile> inputs = inputsForEachRun.get(i);
             ArrayList<DataFile> outputs = outputsForEachRun.get(i);//new ArrayList<DataFile>();
-            Component currentComponent = new Component(name, command, inputs, outputs, ResourceNode.defaultResourceNode, expression, threadsMin, threadsMax);
+            Component currentComponent = new Component(name, command, inputs, outputs, ExecutionSite.defaultResourceNode, expression, threadsMin, threadsMax);
             ArrayList<TreeNode> dependencies = new ArrayList<TreeNode>();
 
             for (int j = 0; j < outputs.size(); j++) {

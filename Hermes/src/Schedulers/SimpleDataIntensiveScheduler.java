@@ -19,7 +19,7 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import Hermes.Component;
-import Hermes.ResourceNode;
+import Hermes.ExecutionSite;
 import Hermes.TreeNode;
 
 /**
@@ -29,7 +29,7 @@ import Hermes.TreeNode;
 public class SimpleDataIntensiveScheduler implements Scheduler {
 
     @Override
-    public TreeNode scheduleNextTaskAndUpdateQueues(ArrayList<ResourceNode> availableResources, LinkedHashMap<TreeNode, String> waitingQueue) {
+    public TreeNode scheduleNextTaskAndUpdateQueues(ArrayList<ExecutionSite> availableResources, LinkedHashMap<TreeNode, String> waitingQueue) {
 
         if (availableResources.isEmpty()) {
             return null;
@@ -37,7 +37,7 @@ public class SimpleDataIntensiveScheduler implements Scheduler {
 
         TreeNode minNode = null;
         double minData = Double.MAX_VALUE;
-        for (ResourceNode site : availableResources) {
+        for (ExecutionSite site : availableResources) {
 
             if (site.availableSlots == 0) {
                 System.out.println("Fatal Error, site with 0 slots reached scheduler.. should have been cut off");
@@ -45,7 +45,13 @@ public class SimpleDataIntensiveScheduler implements Scheduler {
             }
 
             for (Map.Entry<TreeNode, String> entry : waitingQueue.entrySet()) {
-                if (site.availableSlots >= Integer.valueOf(entry.getKey().component.threadsMin)) {
+                Integer adjustedThreads;
+                if (entry.getKey().component.threadsMin.equals("blockSite")) {
+                    adjustedThreads = site.siteThreadCount;
+                } else {
+                    adjustedThreads = Integer.valueOf(entry.getKey().component.threadsMin);
+                }
+                if (site.availableSlots >= adjustedThreads) {
                     double tempFileTransferTotal = entry.getKey().component.calculateFileTransfersRequiredForGivenSite(site);
                     if (tempFileTransferTotal < minData) {
                         minData = tempFileTransferTotal;
@@ -60,8 +66,10 @@ public class SimpleDataIntensiveScheduler implements Scheduler {
         }
         if (minNode.component.threadsMax.equals("all")) {
             minNode.component.setAssignedThreads(minNode.component.executedOnResource.availableSlots);
+        } else if (Integer.valueOf(minNode.component.threadsMax) >= minNode.component.executedOnResource.availableSlots) {
+            minNode.component.setAssignedThreads(minNode.component.executedOnResource.availableSlots);
         } else {
-            minNode.component.setAssignedThreads(Integer.valueOf(minNode.component.threadsMin));
+            minNode.component.setAssignedThreads(Integer.valueOf(minNode.component.threadsMax));
         }
         return minNode;
 

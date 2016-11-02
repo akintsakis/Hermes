@@ -82,7 +82,7 @@ public class FileRetriever extends Thread {
     public void retrieveLogsFromAllSites() throws IOException {
 
         System.out.println("Retrieving logs from all sites...");
-        for (ResourceNode res : Hermes.hermes.resources) {
+        for (ExecutionSite res : Hermes.hermes.resources) {
             String resFolderPath = workflowResultsFolder + "/000Logs/" + res.name;
             File resourceFolder = new File(resFolderPath);
             resourceFolder.mkdirs();
@@ -169,8 +169,8 @@ public class FileRetriever extends Thread {
     public void deleteFilesOnSites(ArrayList<DataFile> markedForDeletion) {
         for (int i = 0; i < markedForDeletion.size(); i++) {
 
-            for (Map.Entry<ResourceNode, String> entry : markedForDeletion.get(i).pathInResource.entrySet()) {
-                ResourceNode site = entry.getKey();
+            for (Map.Entry<ExecutionSite, String> entry : markedForDeletion.get(i).pathInResource.entrySet()) {
+                ExecutionSite site = entry.getKey();
                 String path = entry.getValue();
                 //send a delete command to clientdaemon on site with monitor on off
                 //System.out.println("Deleting ID: " + markedForDeletion.get(i).id + "_" + markedForDeletion.get(i).fileName + " on site:" + site.name);
@@ -207,7 +207,7 @@ public class FileRetriever extends Thread {
         } else {
             Component component = justFinished;
             String pathInSource = "";
-            ResourceNode resource = component.executedOnResource;
+            ExecutionSite resource = component.executedOnResource;
             for (int i = 0; i < component.outputDataFiles.size(); i++) {
                 if (Configuration.globalConfig.uploadAllIntermediateResults || component.outputDataFiles.get(i).isFinalOutput) {
                     pathInSource = component.outputDataFiles.get(i).pathInResource.get(component.executedOnResource);
@@ -277,7 +277,7 @@ public class FileRetriever extends Thread {
         }
         try {
             retrieveLogsFromAllSites();
-            ResourceNode.deleteDockerKey();
+            ExecutionSite.deleteDockerKey();
             HermesLogKeeper.closeLogFiles();
             Hermes.hermes.killAllResources();
         } catch (IOException ex) {

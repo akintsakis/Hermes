@@ -18,7 +18,7 @@ package Schedulers;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import Hermes.Component;
-import Hermes.ResourceNode;
+import Hermes.ExecutionSite;
 import Hermes.TreeNode;
 
 /**
@@ -27,6 +27,6 @@ import Hermes.TreeNode;
  */
 public interface Scheduler {
 
-    public TreeNode scheduleNextTaskAndUpdateQueues(ArrayList<ResourceNode> availableResources, LinkedHashMap<TreeNode, String> waitingQueue);
+    public TreeNode scheduleNextTaskAndUpdateQueues(ArrayList<ExecutionSite> availableResources, LinkedHashMap<TreeNode, String> waitingQueue);
 
 }

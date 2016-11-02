@@ -66,7 +66,7 @@
       </data>
     </node>
     <node id="n3">
-      <data key="d5"><![CDATA[type=Component;name=makeBlastProteinDB;command=programPath -in input1 -dbtype nucl -out output1 -hash_index -parse_seqids;exp=input1;threadsMin=8;threadsMax=all]]></data>
+      <data key="d5"><![CDATA[type=Component;name=makeBlastProteinDB;command=programPath -in input1 -dbtype nucl -out output1 -hash_index -parse_seqids;exp=input1;threadsMin=blockSite;threadsMax=all]]></data>
       <data key="d6">
         <y:GenericNode configuration="com.yworks.flowchart.start2">
           <y:Geometry height="57.59999999999991" width="101.60000000000002" x="384.73787513513616" y="561.6656"/>
@@ -83,7 +83,7 @@
       </data>
     </node>
     <node id="n4">
-      <data key="d5"><![CDATA[type=Component;name=blastNuclDistributed;command=java -jar programPath '-query inFile -db inDBFile -evalue 0.000001 -outfmt 6 -max_target_seqs 3 -dbsize 37688485 -out outFile' input1 input2 output1 threads 500;threadsMin=8;threadsMax=all;exp=input1+input2]]></data>
+      <data key="d5"><![CDATA[type=Component;name=blastNuclDistributed;command=java -jar programPath '-query inFile -db inDBFile -evalue 0.000001 -outfmt 6 -max_target_seqs 3 -dbsize 37688485 -out outFile' input1 input2 output1 threads 500;threadsMin=blockSite;threadsMax=all;exp=input1+input2]]></data>
       <data key="d6">
         <y:GenericNode configuration="com.yworks.flowchart.start2">
           <y:Geometry height="57.59999999999991" width="101.60000000000002" x="626.5780800000003" y="540.2551057239059"/>
@@ -632,7 +632,6 @@
       </data>
     </edge>
     <edge id="e23" source="n0" target="n1">
-      <data key="d9"/>
       <data key="d10">
         <y:PolyLineEdge>
           <y:Path sx="0.0" sy="0.0" tx="0.0" ty="0.0"/>

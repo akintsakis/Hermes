@@ -66,7 +66,7 @@
       </data>
     </node>
     <node id="n3">
-      <data key="d5"><![CDATA[type=Component;name=assignIDsToFastaFile;command=java -jar programPath input1 input2 output1;exp=input1+input2;threadsMin=8;threadsMax=all]]></data>
+      <data key="d5"><![CDATA[type=Component;name=assignIDsToFastaFile;command=java -jar programPath input1 input2 output1;exp=input1+input2;threadsMin=blockSite;threadsMax=all]]></data>
       <data key="d6">
         <y:GenericNode configuration="com.yworks.flowchart.start2">
           <y:Geometry height="57.59999999999991" width="101.60000000000002" x="816.5780800000005" y="319.9620800000002"/>
@@ -134,7 +134,7 @@
       </data>
     </node>
     <node id="n7">
-      <data key="d5"><![CDATA[type=Component;name=makeBlastProteinDB;command=programPath -in input1 -dbtype prot -out output1 -hash_index -parse_seqids;exp=input1]]></data>
+      <data key="d5"><![CDATA[type=Component;name=makeBlastProteinDB;command=programPath -in input1 -dbtype prot -out output1 -hash_index -parse_seqids;exp=input1;threadsMin=blockSite;threadsMax=all]]></data>
       <data key="d6">
         <y:GenericNode configuration="com.yworks.flowchart.start2">
           <y:Geometry height="57.59999999999991" width="101.60000000000002" x="991.4253751351363" y="714.6656"/>
@@ -168,7 +168,7 @@
       </data>
     </node>
     <node id="n9">
-      <data key="d5"><![CDATA[type=Component;name=blastProteinDistributed;command=java -jar programPath '-query inFile -db inDBFile -evalue 0.000001 -outfmt 6 -out outFile' input1 input2 output1 threads 200;exp=input1+input2; threadsMin=8;threadsMax=all]]></data>
+      <data key="d5"><![CDATA[type=Component;name=blastProteinDistributed;command=java -jar programPath '-query inFile -db inDBFile -evalue 0.000001 -outfmt 6 -out outFile' input1 input2 output1 threads 200;exp=input1+input2; threadsMin=blockSite;threadsMax=all]]></data>
       <data key="d6">
         <y:GenericNode configuration="com.yworks.flowchart.start2">
           <y:Geometry height="57.59999999999991" width="101.60000000000002" x="991.4253751351364" y="483.5312"/>
@@ -203,7 +203,7 @@
     </node>
     <node id="n11">
       <data key="d4"/>
-      <data key="d5"><![CDATA[type=Component;name=phylogeneticProfiles;command=java -jar programPath input1 input2 output1;exp=input1+input2; threadsMin=8;threadsMax=all]]></data>
+      <data key="d5"><![CDATA[type=Component;name=phylogeneticProfiles;command=java -jar programPath input1 input2 output1;exp=input1+input2; threadsMin=blockSite;threadsMax=all]]></data>
       <data key="d6">
         <y:GenericNode configuration="com.yworks.flowchart.start2">
           <y:Geometry height="57.59999999999991" width="101.60000000000002" x="1178.650750270273" y="589.2938464864873"/>
@@ -457,7 +457,6 @@
       </data>
     </edge>
     <edge id="e14" source="n14" target="n12">
-      <data key="d9"/>
       <data key="d10">
         <y:PolyLineEdge>
           <y:Path sx="0.0" sy="0.0" tx="0.0" ty="0.0"/>
@@ -468,7 +467,6 @@
       </data>
     </edge>
     <edge id="e15" source="n0" target="n13">
-      <data key="d9"/>
       <data key="d10">
         <y:PolyLineEdge>
           <y:Path sx="0.0" sy="0.0" tx="0.0" ty="0.0"/>

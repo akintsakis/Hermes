@@ -58,7 +58,7 @@ public class Component {
     double maxHdSpaceInMb;
     double estimatedHdWritesInB;
     double estimatedComputationalComplexity;
-    public ResourceNode executedOnResource;
+    public ExecutionSite executedOnResource;
 
     /* cost evaluation metrics */
     int numberOfThreadsUsed;
@@ -80,7 +80,7 @@ public class Component {
     public String threadsMin;
     public String threadsMax;
 
-    public Component(String name, String command, ArrayList<DataFile> inputDataFiles, ArrayList<DataFile> outputDataFiles, ResourceNode executedOnResource, String expression, String threadsMin, String threadsMax) throws ParserConfigurationException, SAXException, IOException {
+    public Component(String name, String command, ArrayList<DataFile> inputDataFiles, ArrayList<DataFile> outputDataFiles, ExecutionSite executedOnResource, String expression, String threadsMin, String threadsMax) throws ParserConfigurationException, SAXException, IOException {
         this.threadsMin = threadsMin;
         this.threadsMax = threadsMax;
         id = componentIdCounter++;
@@ -114,7 +114,7 @@ public class Component {
         this.threadsAssigned = threadsAssigned;
     }
 
-    public double calculateFileTransfersRequiredForGivenSite(ResourceNode site) {
+    public double calculateFileTransfersRequiredForGivenSite(ExecutionSite site) {
         double dataToBeTransferred = 0.0;
 
         for (DataFile file : inputDataFiles) {

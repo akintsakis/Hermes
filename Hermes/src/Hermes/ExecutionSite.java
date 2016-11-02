@@ -47,18 +47,18 @@ import java.util.concurrent.CyclicBarrier;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-public class ResourceNode extends Thread implements Comparable<ResourceNode> {
+public class ExecutionSite extends Thread implements Comparable<ExecutionSite> {
 
     private static Lock portForwardsLock = new Lock();
     private Integer sitePortsStartFrom;
 
     public ArrayList<Component> componentsCurrentlyExecutingOnSites = new ArrayList<Component>();
-    public static ResourceNode defaultResourceNode;
+    public static ExecutionSite defaultResourceNode;
     public final String name;
     public final int id;
     double ramSizeInMB;
 
-    int siteThreadCount;
+    public int siteThreadCount;
     public int availableSlots;
     public Double cpuMultithreadedScore;
 
@@ -92,7 +92,7 @@ public class ResourceNode extends Thread implements Comparable<ResourceNode> {
     static Integer masterPortForwardsToSitesStartFrom;
 
     public static HashMap<String, String> portMappings = new HashMap<String, String>();
-    static HashMap<Integer, ResourceNode> resourceNodesByForwardedPortForComms = new HashMap<Integer, ResourceNode>();
+    static HashMap<Integer, ExecutionSite> resourceNodesByForwardedPortForComms = new HashMap<Integer, ExecutionSite>();
     String dockerBuildFolder;
 
     //portForwards
@@ -100,9 +100,9 @@ public class ResourceNode extends Thread implements Comparable<ResourceNode> {
     private LocalPortForwarder lpf1;
 
     private final CyclicBarrier cyclicBarrier;
-    private ArrayList<ResourceNode> resources;
+    private ArrayList<ExecutionSite> resources;
 
-    ResourceNode(String ipAddress, String password, String username) {
+    ExecutionSite(String ipAddress, String password, String username) {
         sitePortsStartFrom = Configuration.globalConfig.siteTunnelPortsStartFrom;
         this.ipAddress = ipAddress;
         //this.password = password;
@@ -122,7 +122,7 @@ public class ResourceNode extends Thread implements Comparable<ResourceNode> {
         cpuMultithreadedScore = 0.0;
     }
 
-    ResourceNode(Integer id, String resourceConfigFile, ArrayList<ResourceNode> resources, CyclicBarrier cyclicBarrier) throws IOException, TaskExecFailException, Exception {
+    ExecutionSite(Integer id, String resourceConfigFile, ArrayList<ExecutionSite> resources, CyclicBarrier cyclicBarrier) throws IOException, TaskExecFailException, Exception {
         this.id = id;
         sitePortsStartFrom = Configuration.globalConfig.siteTunnelPortsStartFrom;
         this.cyclicBarrier = cyclicBarrier;
@@ -242,7 +242,7 @@ public class ResourceNode extends Thread implements Comparable<ResourceNode> {
         try {
             sleep(300);
         } catch (InterruptedException ex) {
-            Logger.getLogger(ResourceNode.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(ExecutionSite.class.getName()).log(Level.SEVERE, null, ex);
         }
         Session sess = conn.openSession();
         sess.execCommand(command);
@@ -258,7 +258,7 @@ public class ResourceNode extends Thread implements Comparable<ResourceNode> {
         return freePort;
     }
 
-    public void setSiteTunnels(ArrayList<ResourceNode> resources) throws IOException {
+    public void setSiteTunnels(ArrayList<ExecutionSite> resources) throws IOException {
         try {
             System.out.println("Setting up ssh tunnels on: " + name);
             String command;
@@ -282,7 +282,7 @@ public class ResourceNode extends Thread implements Comparable<ResourceNode> {
             }
             System.out.println("Tunnels ready on " + name);
         } catch (InterruptedException ex) {
-            Logger.getLogger(ResourceNode.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(ExecutionSite.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
 
@@ -312,7 +312,7 @@ public class ResourceNode extends Thread implements Comparable<ResourceNode> {
             launchDaemonOnSite();
 
         } catch (Exception ex) {
-            Logger.getLogger(ResourceNode.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(ExecutionSite.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
 
@@ -412,7 +412,7 @@ public class ResourceNode extends Thread implements Comparable<ResourceNode> {
         try {
             sleep(300);
         } catch (InterruptedException ex) {
-            Logger.getLogger(ResourceNode.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(ExecutionSite.class.getName()).log(Level.SEVERE, null, ex);
         }
         executeCommand("docker exec " + Configuration.globalConfig.hermesWorkflowContainerName + " screen -S clientDaemon -X stuff 'java -jar " + "/home/user/" + DataFile.currentFolder + "/daemon/Client.jar " + "127.0.0.1" + " " + sshTunnelForwardedContainersMasterListeningPort + " " + clientListeningPort + " > clientRedirectOut 2>&1'`echo -ne '\\015'`", false, false);
     }
@@ -432,7 +432,7 @@ public class ResourceNode extends Thread implements Comparable<ResourceNode> {
             executeCommand("docker rmi " + Configuration.globalConfig.hermesWorkflowImageName, true, true);
             conn.close();
         } catch (InterruptedException ex) {
-            Logger.getLogger(ResourceNode.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(ExecutionSite.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
 
@@ -476,7 +476,7 @@ public class ResourceNode extends Thread implements Comparable<ResourceNode> {
     private Double autoDetectCpuMultithreadedPerformance(Connection conn) throws IOException {
         Double cpuMultithreadedScore;
         Session sess = conn.openSession();
-        sess.execCommand("docker exec " + Configuration.globalConfig.hermesWorkflowContainerName + " sysbench --test=cpu --num-threads=8 --cpu-max-prime=20000 run | grep \"total time:\"");
+        sess.execCommand("docker exec " + Configuration.globalConfig.hermesWorkflowContainerName + " sysbench --test=cpu --num-threads="+siteThreadCount+" --cpu-max-prime=20000 run | grep \"total time:\"");
         InputStream stdout = new StreamGobbler(sess.getStdout());
         BufferedReader stdoutReader = new BufferedReader(new InputStreamReader(stdout));
         String line = stdoutReader.readLine();
@@ -604,7 +604,7 @@ public class ResourceNode extends Thread implements Comparable<ResourceNode> {
     }
 
     @Override
-    public int compareTo(ResourceNode o) {
+    public int compareTo(ExecutionSite o) {
         if (cpuMultithreadedScore > o.cpuMultithreadedScore) {
             return 1;
         } else if (cpuMultithreadedScore < o.cpuMultithreadedScore) {

@@ -24,7 +24,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public class DataFile {
 
-    public static ResourceNode initResourceNode = new ResourceNode("localhost", "", "");
+    public static ExecutionSite initResourceNode = new ExecutionSite("localhost", "", "");
     public static ArrayList<DataFile> allDataFiles = new ArrayList<DataFile>();
     public static int dataFileIdCounter = 0;
     public static String currentFolder;
@@ -41,8 +41,8 @@ public class DataFile {
 
     double realFileSizeInB;
     double realFileSizeCustom;
-    Map<ResourceNode, String> pathInResource = new ConcurrentHashMap<ResourceNode, String>();
-    Map<ResourceNode, Lock> resourceLocks = new ConcurrentHashMap<ResourceNode, Lock>();
+    Map<ExecutionSite, String> pathInResource = new ConcurrentHashMap<ExecutionSite, String>();
+    Map<ExecutionSite, Lock> resourceLocks = new ConcurrentHashMap<ExecutionSite, Lock>();
     String pathOnResourceAndComp;
 
     DataFile(String fileName, String type, boolean iSinitialInput, boolean isFinalOutput, boolean isDir) {
@@ -58,14 +58,14 @@ public class DataFile {
             pathInResource.put(initResourceNode, fileName);
         }
 
-        for (ResourceNode resource : Hermes.hermes.resources) {
+        for (ExecutionSite resource : Hermes.hermes.resources) {
             Lock resourceLock = new Lock();
             resourceLocks.put(resource, resourceLock);
         }
         allDataFiles.add(this);
     }
 
-    public void setFilePathForComponentAndResource(ResourceNode r, Component c) {
+    public void setFilePathForComponentAndResource(ExecutionSite r, Component c) {
         pathOnResourceAndComp = r.containerUserHomePath + currentFolder + "/" + c.folderId + "/" + fileName;
         pathInResource.put(r, pathOnResourceAndComp);
     }

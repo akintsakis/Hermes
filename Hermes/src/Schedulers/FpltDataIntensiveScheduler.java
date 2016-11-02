@@ -19,7 +19,7 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import Hermes.Component;
-import Hermes.ResourceNode;
+import Hermes.ExecutionSite;
 import Hermes.TreeNode;
 import java.util.Collections;
 
@@ -30,7 +30,7 @@ import java.util.Collections;
 public class FpltDataIntensiveScheduler implements Scheduler {
 
     @Override
-    public TreeNode scheduleNextTaskAndUpdateQueues(ArrayList<ResourceNode> availableResources, LinkedHashMap<TreeNode, String> waitingQueue) {
+    public TreeNode scheduleNextTaskAndUpdateQueues(ArrayList<ExecutionSite> availableResources, LinkedHashMap<TreeNode, String> waitingQueue) {
 
         if (availableResources.isEmpty()) {
             return null;
@@ -44,9 +44,15 @@ public class FpltDataIntensiveScheduler implements Scheduler {
         Collections.sort(availableResources);
         Collections.reverse(availableResources);
 
-        for (ResourceNode site : availableResources) {
+        for (ExecutionSite site : availableResources) {
             for (TreeNode node : comps) {
-                if (site.availableSlots >= Integer.valueOf(node.component.threadsMin)) {
+                Integer adjustedThreads;
+                if (node.component.threadsMin.equals("blockSite")) {
+                    adjustedThreads = site.siteThreadCount;
+                } else {
+                    adjustedThreads = Integer.valueOf(node.component.threadsMin);
+                }
+                if (site.availableSlots >= adjustedThreads) {
                     minNode = node;
                     break;
                 }
@@ -58,15 +64,21 @@ public class FpltDataIntensiveScheduler implements Scheduler {
         }
 
         double minData = Double.MAX_VALUE;
-        ArrayList<ResourceNode> minTransferSites = new ArrayList<ResourceNode>();
-        for (ResourceNode site : availableResources) {
+        ArrayList<ExecutionSite> minTransferSites = new ArrayList<ExecutionSite>();
+        for (ExecutionSite site : availableResources) {
 
             if (site.availableSlots == 0) {
                 System.out.println("Fatal Error, site with 0 slots reached scheduler.. should have been cut off");
                 System.exit(1);
             }
 
-            if (site.availableSlots >= Integer.valueOf(minNode.component.threadsMin)) {
+            Integer adjustedThreads;
+            if (minNode.component.threadsMin.equals("blockSite")) {
+                adjustedThreads = site.siteThreadCount;
+            } else {
+                adjustedThreads = Integer.valueOf(minNode.component.threadsMin);
+            }
+            if (site.availableSlots >= adjustedThreads) {
                 double tempFileTransferTotal = minNode.component.calculateFileTransfersRequiredForGivenSite(site);
                 if (tempFileTransferTotal < minData) {
                     minData = tempFileTransferTotal;
@@ -84,8 +96,10 @@ public class FpltDataIntensiveScheduler implements Scheduler {
 
         if (minNode.component.threadsMax.equals("all")) {
             minNode.component.setAssignedThreads(minNode.component.executedOnResource.availableSlots);
+        } else if (Integer.valueOf(minNode.component.threadsMax) >= minNode.component.executedOnResource.availableSlots) {
+            minNode.component.setAssignedThreads(minNode.component.executedOnResource.availableSlots);
         } else {
-            minNode.component.setAssignedThreads(Integer.valueOf(minNode.component.threadsMin));
+            minNode.component.setAssignedThreads(Integer.valueOf(minNode.component.threadsMax));
         }
         return minNode;
 

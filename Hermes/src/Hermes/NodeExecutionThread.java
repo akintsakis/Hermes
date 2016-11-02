@@ -78,7 +78,7 @@ public class NodeExecutionThread extends Thread {
         for (DataFile file : node.component.inputDataFiles) {
             file.resourceLocks.get(node.component.executedOnResource).lock();
             if (file.iSinitialInput && !file.pathInResource.containsKey(node.component.executedOnResource)) {
-                transferFile(ResourceNode.defaultResourceNode, file, "initialInputs");
+                transferFile(ExecutionSite.defaultResourceNode, file, "initialInputs");
             } else if (!file.pathInResource.containsKey(node.component.executedOnResource)) {
                 String dest = String.valueOf(file.createdByComponent.id) + file.createdByComponent.name + "_transfered";
                 transferFile(file.pathInResource.entrySet().iterator().next().getKey(), file, dest);
@@ -87,7 +87,7 @@ public class NodeExecutionThread extends Thread {
         }
     }
 
-    public void transferFile(ResourceNode from, DataFile file, String componentFolder) throws InterruptedException {
+    public void transferFile(ExecutionSite from, DataFile file, String componentFolder) throws InterruptedException {
         String currentCommand = "sh;-c;mkdir -p " + DataFile.currentFolder + "/" + componentFolder + "/";
         JSONObject jsonCommandMakeDir = new JSONObject();
         jsonCommandMakeDir.put("command", currentCommand);
@@ -100,7 +100,7 @@ public class NodeExecutionThread extends Thread {
             p.getFileName().toString();
             Path p1 = Paths.get(file.pathInResource.get(from));
             String destinationPath = node.component.executedOnResource.containerUserHomePath + "/" + DataFile.currentFolder + "/" + componentFolder + "/" + p1.getParent().getFileName();
-            String port = ResourceNode.portMappings.get(String.valueOf(node.component.executedOnResource.id) + "_" + String.valueOf(from.id));
+            String port = ExecutionSite.portMappings.get(String.valueOf(node.component.executedOnResource.id) + "_" + String.valueOf(from.id));
             String command = "sh;-c;scp -c arcfour -q -r -C -P " + port + " " + Configuration.globalConfig.containerUsernameForSSH + "@" + from.forwardedFileTransfersHostname + ":" + p1.getParent() + " " + destinationPath + " && du -h " + destinationPath + " && ls -la " + destinationPath;
             JSONObject jsonCommandFileTransfer = new JSONObject();
             jsonCommandFileTransfer.put("command", command);
@@ -112,7 +112,7 @@ public class NodeExecutionThread extends Thread {
             Path p = Paths.get(file.pathInResource.get(from));
             p.getFileName().toString();
             String destinationPath = node.component.executedOnResource.containerUserHomePath + "/" + DataFile.currentFolder + "/" + componentFolder + "/" + p.getFileName().toString();
-            String port = ResourceNode.portMappings.get(String.valueOf(node.component.executedOnResource.id) + "_" + String.valueOf(from.id));
+            String port = ExecutionSite.portMappings.get(String.valueOf(node.component.executedOnResource.id) + "_" + String.valueOf(from.id));
             String command = "sh;-c;scp -c arcfour -q -r -C -P " + port + " " + Configuration.globalConfig.containerUsernameForSSH + "@" + from.forwardedFileTransfersHostname + ":" + file.pathInResource.get(from) + " " + destinationPath + " && du -h " + destinationPath + " && ls -la " + destinationPath;
             JSONObject jsonCommandFileTransfer = new JSONObject();
             jsonCommandFileTransfer.put("command", command);

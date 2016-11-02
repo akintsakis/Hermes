@@ -15,7 +15,7 @@
  */
 package Schedulers;
 
-import Hermes.ResourceNode;
+import Hermes.ExecutionSite;
 import Hermes.TreeNode;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -28,7 +28,7 @@ import java.util.LinkedHashMap;
 public class FpltScheduler implements Scheduler {
 
     @Override
-    public TreeNode scheduleNextTaskAndUpdateQueues(ArrayList<ResourceNode> availableResources, LinkedHashMap<TreeNode, String> waitingQueue) {
+    public TreeNode scheduleNextTaskAndUpdateQueues(ArrayList<ExecutionSite> availableResources, LinkedHashMap<TreeNode, String> waitingQueue) {
 
         if (availableResources.isEmpty()) {
             return null;
@@ -42,9 +42,15 @@ public class FpltScheduler implements Scheduler {
         Collections.sort(availableResources);
         Collections.reverse(availableResources);
 
-        for (ResourceNode site : availableResources) {
+        for (ExecutionSite site : availableResources) {
             for (TreeNode node : comps) {
-                if (site.availableSlots >= Integer.valueOf(node.component.threadsMin)) {
+                Integer adjustedThreads;
+                if (node.component.threadsMin.equals("blockSite")) {
+                    adjustedThreads = site.siteThreadCount;
+                } else {
+                    adjustedThreads = Integer.valueOf(node.component.threadsMin);
+                }
+                if (site.availableSlots >= adjustedThreads) {
                     minNode = node;
                     break;
                 }
@@ -55,11 +61,12 @@ public class FpltScheduler implements Scheduler {
             return null;
         }
 
-        minNode.component.executedOnResource = availableResources.get(0);
         if (minNode.component.threadsMax.equals("all")) {
             minNode.component.setAssignedThreads(minNode.component.executedOnResource.availableSlots);
+        } else if (Integer.valueOf(minNode.component.threadsMax) >= minNode.component.executedOnResource.availableSlots) {
+            minNode.component.setAssignedThreads(minNode.component.executedOnResource.availableSlots);
         } else {
-            minNode.component.setAssignedThreads(Integer.valueOf(minNode.component.threadsMin));
+            minNode.component.setAssignedThreads(Integer.valueOf(minNode.component.threadsMax));
         }
         return minNode;
 

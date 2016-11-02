@@ -46,10 +46,10 @@ public class WorkflowTree implements Serializable {
     public ArrayList<NodeExecutionThread> actuallyExecutingQueue = new ArrayList<NodeExecutionThread>();
     public ArrayList<NodeExecutionThread> executionComplete = new ArrayList<NodeExecutionThread>();
 
-    public ArrayList<ResourceNode> resources;
-    public ArrayList<ResourceNode> availableResources = new ArrayList<ResourceNode>();
+    public ArrayList<ExecutionSite> resources;
+    public ArrayList<ExecutionSite> availableResources = new ArrayList<ExecutionSite>();
 
-    WorkflowTree(TreeNode root, ArrayList<ResourceNode> resources) throws IOException {
+    WorkflowTree(TreeNode root, ArrayList<ExecutionSite> resources) throws IOException {
         this.resources = resources;
         this.root = root;
         root.executionCompleted = true;
@@ -72,7 +72,7 @@ public class WorkflowTree implements Serializable {
         revertWorkflow();
         long startTime = System.currentTimeMillis();
 
-        for (ResourceNode node : resources) {
+        for (ExecutionSite node : resources) {
             availableResources.add(node);
         }
         actuallyExecutingQueue.clear();
@@ -152,7 +152,7 @@ public class WorkflowTree implements Serializable {
         LinkedHashMap<TreeNode, String> scheduledAndMarkedForRemoval = new LinkedHashMap<TreeNode, String>();
 
         while (!waitingQueue.isEmpty()) {
-            Scheduler scheduler = new FpltDataIntensiveScheduler();
+            Scheduler scheduler = new FpltDataIntensiveScheduler();            
             //Scheduler scheduler = new SimpleDataIntensiveScheduler();
             //Scheduler scheduler = new FpltScheduler();
             //Scheduler scheduler = new FirstComeScheduler();
@@ -160,6 +160,7 @@ public class WorkflowTree implements Serializable {
             TreeNode toBeExecuted = scheduler.scheduleNextTaskAndUpdateQueues(availableResources, waitingQueue);
 
             if (toBeExecuted == null) {
+                //System.out.println("None of the available sites have enough slots to execute any of the waiting components... Waiting for sites or slots to be freed.");
                 break;
             }
 
@@ -218,7 +219,7 @@ public class WorkflowTree implements Serializable {
         return true;
     }
 
-    public boolean availableSlotsExistOnResource(Component component, ResourceNode resource) {
+    public boolean availableSlotsExistOnResource(Component component, ExecutionSite resource) {
         if (component.slots >= resource.availableSlots) {
             return true;
         }
@@ -227,7 +228,7 @@ public class WorkflowTree implements Serializable {
 
     public void revertWorkflow() {
         //Revert resource Node status
-        for (ResourceNode resource : resources) {
+        for (ExecutionSite resource : resources) {
             resource.revert();
         }
         for (Map.Entry<Integer, TreeNode> entry : allNodes.entrySet()) {
