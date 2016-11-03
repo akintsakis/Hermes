@@ -69,6 +69,7 @@ public class NodeExecutionThread extends Thread {
         jsonCommand.put("command", currentCommand);
         jsonCommand.put("NodeExecutionThreadId", String.valueOf(id));
         //sendIt(jsonCommand.toJSONString(), node.component.executedOnResource.tunnelIP, node.component.executedOnResource.masterTunnelPortCommunications);
+        sleep(300);
         node.component.executedOnResource.passCommandToClientWithinContainer(jsonCommand.toJSONString(), node.component, 3);
         NodeExecutionThreadQueue.waitFor();
 
@@ -76,6 +77,7 @@ public class NodeExecutionThread extends Thread {
 
     public void satisfyInputDependencies() throws TaskExecFailException, InterruptedException {
         for (DataFile file : node.component.inputDataFiles) {
+            sleep(300);
             file.resourceLocks.get(node.component.executedOnResource).lock();
             if (file.iSinitialInput && !file.pathInResource.containsKey(node.component.executedOnResource)) {
                 transferFile(ExecutionSite.defaultResourceNode, file, "initialInputs");
@@ -125,6 +127,7 @@ public class NodeExecutionThread extends Thread {
     }
 
     public void executeComponent() throws InterruptedException {
+        sleep(300);
         if (!node.component.command.startsWith("sh;-c;")) {
             node.component.command = "sh;-c;" + node.component.command;
             node.component.command = "sh;-c;" + node.component.command.substring(6, node.component.command.length()).replace(";", " ");
