@@ -588,7 +588,14 @@ public class ExecutionSite extends Thread implements Comparable<ExecutionSite> {
             }
         } catch (IOException e) {
             System.out.println("Connection exception connecting to container daemon on site.." + name);
+            System.out.println("Error: "+e);
             System.out.println("Attempting to re-establish connection.., attempt:" + retries);
+            
+            try {
+                sleep(3000);
+            } catch (InterruptedException ex) {
+                Logger.getLogger(ExecutionSite.class.getName()).log(Level.SEVERE, null, ex);
+            }
             retries = retries - 1;
             establishSSHConnection();
             passCommandToClientWithinContainer(command, component, retries);
