@@ -31,9 +31,13 @@ Navigate within the /Sites/ folder located in the root hermes project folder. Yo
 * provide a value for username
 * provide a value for ipAddress (or hostname), or localhost if local
 
-You must also the ssh listening port on the site (default value is 22).
+You must also provide the ssh listening port on the site (default value is 22).
 
-You can add as many sites as you wish by creating *.site files within this folder and hermes will automatically utilize them and load balance the work between them. You do not need to have a local site, you can utilize remote sites exclusively if you wish.
+You can add as many sites as you wish by creating *.site files within this folder and hermes will automatically utilize them and load balance the work between them. You do not need to have a local site, you can utilize remote sites exclusively if you wish. 
+
+However, when utilizing remote sites:
+
+* make sure that the SSH port on the site where Hermes is running is OPEN and reachable from the outside world. You might need to set up port forwarding in order to achieve that.
 
 
 ## Step 3 - Running the pangenome analysis sample workflow with the provided sample input
