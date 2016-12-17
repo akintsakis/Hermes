@@ -66,3 +66,5 @@ In case you want to run a larger analysis, you can use the input dataset located
 Hermes is a distributed computing platform and as such network and authentication errors may sometimes impede optimal execution. Common errors include:
 
 * While an image is being pulled from dockerhub, the connection is reset. In this case you need to cancel (ctrl-c) and re-run the workflow.
+* Sometimes the autodetect ip module might fail due to a network error, cancel (ctrl-c) and re-run the workflow
+* As the test workflows are cpu-intensive, when both the Hermes master and worker container are executed on a site with very limited resources (less than 2 cores) the workflow may stall, although this is rare. In that case please restart and re-run. No step should take a significant amount of time (more than a few minutes) while at the same time cpu usage must be high.
