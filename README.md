@@ -1,6 +1,7 @@
-# Hermes
-
 # Hermes - Containerized high performance bioinformatics workflow execution
+
+##Intro 
+Hermes introduces a new "describe once, run anywhere" paradigm for the execution of bioinformatics workflows in hybrid cloud environments. It combines the traditional features of parallelization-enabled workflow management systems and of distributed computing platforms in a container-based approach, while it offers seamless deployment, overcoming the burden of setting up and configuring the software and network requirements. Most importantly, Hermes guarantees the reproducibility of research by enforcing standardization of the execution environment, thus leading to consistent scientific results, cultivating collaboration between scientists and accelerating scientific output.
 
 ##Dependencies
 The following dependencies exist for ALL sites where execution is to take place.
