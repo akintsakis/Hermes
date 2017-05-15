@@ -21,6 +21,7 @@ package Hermes;
 import Schedulers.FirstComeScheduler;
 import Schedulers.FpltDataIntensiveScheduler;
 import Schedulers.FpltScheduler;
+import Schedulers.RandomScheduler;
 import Schedulers.SimpleDataIntensiveScheduler;
 import Schedulers.Scheduler;
 import java.io.IOException;
@@ -40,6 +41,7 @@ public class WorkflowTree implements Serializable {
     public Lock threadslock = new Lock();
     public Lock masterlock = new Lock();
 
+    public LinkedHashMap<TreeNode, String> waitingQueue;
     public LinkedHashMap<Integer, TreeNode> allNodes = new LinkedHashMap<Integer, TreeNode>();
     HashMap<TreeNode, String> allNodesCheck = new HashMap<TreeNode, String>();
 
@@ -79,7 +81,7 @@ public class WorkflowTree implements Serializable {
         executionComplete.clear();
 
         double currentTime = 0.0;
-        LinkedHashMap<TreeNode, String> waitingQueue = new LinkedHashMap<TreeNode, String>();
+        waitingQueue = new LinkedHashMap<TreeNode, String>();
         LinkedHashMap<TreeNode, String> blockedQueue = new LinkedHashMap<TreeNode, String>();
         ArrayList<TreeNode> executingQueue = new ArrayList<TreeNode>();
         addNodeChildrenToWaitingQueueOrBlockedQueue(root, waitingQueue, blockedQueue);
@@ -112,6 +114,11 @@ public class WorkflowTree implements Serializable {
             //  System.out.println("master waiting for something to finish");
             masterlock.waitFor();
             // System.out.println("master notified");
+            
+            if(executionComplete.isEmpty()) {
+                return null;
+            }
+            
             for (int i = 0; i < executingQueue.size(); i++) {
                 if (executingQueue.get(i) == executionComplete.get(0).node) {
                     executingQueue.remove(i);
@@ -152,7 +159,8 @@ public class WorkflowTree implements Serializable {
         LinkedHashMap<TreeNode, String> scheduledAndMarkedForRemoval = new LinkedHashMap<TreeNode, String>();
 
         while (!waitingQueue.isEmpty()) {
-            Scheduler scheduler = new FpltDataIntensiveScheduler();            
+            Scheduler scheduler = new RandomScheduler();
+            //Scheduler scheduler = new FpltDataIntensiveScheduler();            
             //Scheduler scheduler = new SimpleDataIntensiveScheduler();
             //Scheduler scheduler = new FpltScheduler();
             //Scheduler scheduler = new FirstComeScheduler();

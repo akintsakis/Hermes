@@ -177,6 +177,8 @@ public class NodeExecutionThread extends Thread {
         }
         jsonCommand.put("totalSystemCPUs", node.component.executedOnResource.siteThreadCount);
         jsonCommand.put("systemRAMSizeInMB", String.format("%.1f", node.component.executedOnResource.ramSizeInMB));
+        jsonCommand.put("cpuSingleThreadedBenchmark", String.format("%.5f", node.component.executedOnResource.cpuSingleThreadedScore));
+        jsonCommand.put("cpuMultiThreadedBenchmark", String.format("%.5f", node.component.executedOnResource.cpuMultithreadedScore));
         node.component.executedOnResource.passCommandToClientWithinContainer(jsonCommand.toJSONString(), node.component, 3);
         NodeExecutionThreadQueue.waitFor();
     }

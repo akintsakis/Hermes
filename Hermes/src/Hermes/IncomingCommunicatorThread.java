@@ -62,36 +62,47 @@ public class IncomingCommunicatorThread extends Thread {
                 } else if (jsonResponse.containsKey("mscError")) {
                     potentialError = "mscError detected, but successfully recovered";
                 }
-                
+
                 HermesLogKeeper.logReceiver("+++RECEIVING+++ ::: " + currentNodeExecutionThread.node.component.executedOnResource.name + "  | component " + currentNodeExecutionThread.node.component.name + "| status " + success + " |error: " + potentialError);
                 HermesLogKeeper.logReceiver("FULL reply: " + jsonResponse.toJSONString());
-         
-                if (jsonResponse.containsKey("runTimeLog")) {                    
+
+                if (jsonResponse.containsKey("monitor") && (boolean) jsonResponse.get("monitor")) {
                     ArrayList<JSONObject> jsonLog = (JSONArray) jsonResponse.get("runTimeLog");
                     JSONObject entry = jsonLog.get(0);
                     File runtimeLogFile = new File(Configuration.globalConfig.locationOfHermesRootFolder + "/ComponentExecutionLogs/" + (String) entry.get("componentName") + "/");
                     runtimeLogFile.mkdirs();
                     int numberOfexistingFiles = runtimeLogFile.listFiles().length;
                     try {
-                        BufferedWriter runtimeLogWriter = new BufferedWriter(new FileWriter(runtimeLogFile.getAbsolutePath() + "/" + String.valueOf(numberOfexistingFiles)+"_"+(new Date()).toString().replace(" ", "_").replace(":", "_")));
-                        runtimeLogWriter.write(entry.toJSONString());
+                        BufferedWriter runtimeLogWriter = new BufferedWriter(new FileWriter(runtimeLogFile.getAbsolutePath() + "/" + String.valueOf(numberOfexistingFiles) + "_" + (new Date()).toString().replace(" ", "_").replace(":", "_")));
+                        runtimeLogWriter.write(jsonResponse.toJSONString());
                         runtimeLogWriter.close();
                     } catch (IOException ex) {
                         Logger.getLogger(NodeExecutionThread.class.getName()).log(Level.SEVERE, null, ex);
                     }
-                    TreeNode node = Hermes.hermes.workflow.allNodes.get(Integer.valueOf((String) jsonResponse.get("NodeID")));
-                    node.component.setOutputsRealFileSizesInB((String) entry.get("outputsRealFileSizesInB"));
-                    if (entry.containsKey("outputsRealFileSizesCustom") && Configuration.globalConfig.inputOutputFileAssessment) {
-                        node.component.setOutputsRealFileSizesCustom((String) entry.get("outputsRealFileSizesCustom"));
+
+                    if (jsonResponse.containsKey("runTimeLog")) {
+                        //ArrayList<JSONObject> jsonLog = (JSONArray) jsonResponse.get("runTimeLog");
+                        //JSONObject entry = jsonLog.get(0);
+                        TreeNode node = Hermes.hermes.workflow.allNodes.get(Integer.valueOf((String) jsonResponse.get("NodeID")));
+
+                        node.component.setOutputsRealFileSizesInB((String) entry.get("outputsRealFileSizesInB"));
+                        if (entry.containsKey("outputsRealFileSizesCustom") && Configuration.globalConfig.inputOutputFileAssessment) {
+                            node.component.setOutputsRealFileSizesCustom((String) entry.get("outputsRealFileSizesCustom"));
+                        }
                     }
                 }
-                
+
                 currentNodeExecutionThread.NodeExecutionThreadQueue.wake();
                 if (jsonResponse.containsKey("NodeExecutionThreadFinalized")) {
                     currentNodeExecutionThread.node.component.executionCompleted = true;
                     buildFileRetrieveCommand(currentNodeExecutionThread);
                     Hermes.hermes.workflow.threadslock.lock();
-                    Hermes.hermes.workflow.executionComplete.add(currentNodeExecutionThread);
+                    if (success.equals("FAILURE")) {
+                        System.out.println("Putting back to waiting queue...");
+                        Hermes.hermes.workflow.waitingQueue.put(currentNodeExecutionThread.node, "");
+                    } else {
+                        Hermes.hermes.workflow.executionComplete.add(currentNodeExecutionThread);
+                    }
                     Hermes.hermes.workflow.threadslock.unlock();
                     Hermes.hermes.workflow.masterlock.wake();
                     executingNow.remove((String) jsonResponse.get("NodeExecutionThreadId"));

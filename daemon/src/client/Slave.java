@@ -59,6 +59,7 @@ public class Slave extends Thread {
     String processLog = "";
     String mscError = "";
     String errorLog = "";
+    long timeOut;
 
     public JSONObject buildProcessLogsToJson(double runTime) {
         JSONObject entry = new JSONObject();
@@ -169,6 +170,8 @@ public class Slave extends Thread {
 
         entry.put("totalSystemCPUs", incomingJSON.get("totalSystemCPUs"));
         entry.put("systemRAMSizeInMB", incomingJSON.get("systemRAMSizeInMB"));
+        entry.put("cpuSingleThreadedBenchmark", incomingJSON.get("cpuSingleThreadedBenchmark"));
+        entry.put("cpuMultiThreadedBenchmark", incomingJSON.get("cpuMultiThreadedBenchmark"));
         if (incomingJSON.containsKey("threadsAssigned")) {
             entry.put("threadsAssigned", incomingJSON.get("threadsAssigned"));
         }
@@ -197,6 +200,10 @@ public class Slave extends Thread {
             obj.put("InputDataFiles", incomingJSON.get("InputDataFiles"));
         }
 
+        if (incomingJSON.containsKey("monitor") && (boolean) incomingJSON.get("monitor")) {
+            obj.put("monitor", incomingJSON.get("monitor"));
+        }
+
         if (success) {
             obj.put("success", true);
         } else {
@@ -204,7 +211,8 @@ public class Slave extends Thread {
             obj.put("error", error);
         }
 
-        if (success && incomingJSON.containsKey("monitor") && (boolean) incomingJSON.get("monitor")) {
+        //success &&  removed run only if success
+        if (incomingJSON.containsKey("monitor") && (boolean) incomingJSON.get("monitor")) {
             prepareRuntimeLog(obj, incomingJSON, outputSizesInB, runTime, resourceLogs);
         }
 
@@ -269,6 +277,7 @@ public class Slave extends Thread {
 
                 runTime = 0;
                 String command = (String) incomingJSON.get("command");
+                timeOut = Long.valueOf((String) incomingJSON.get("timeout"));
                 System.out.println("Incoming JSON: " + incomingJSON.toJSONString());
                 wr1.newLine();
                 wr1.write("-----------------------");
@@ -283,9 +292,9 @@ public class Slave extends Thread {
                 wr1.write(baseDir);
                 wr1.newLine();
                 wr1.flush();
-        
+
                 if (incomingJSON.containsKey("monitor") && (boolean) incomingJSON.get("monitor")) {
-       
+
                     String componentID = (String) incomingJSON.get("componentID");
                     wr1.newLine();
                     wr1.write("Monitor is activated");
@@ -301,7 +310,7 @@ public class Slave extends Thread {
                     wr1.flush();
 
                     command = chCommand;
-               
+
                     initTime = System.currentTimeMillis();
                     proc = executeBashScript(command.split(";"));
                     runTime = System.currentTimeMillis() - initTime;
@@ -312,7 +321,7 @@ public class Slave extends Thread {
                         BufferedReader errorReader = new BufferedReader(new FileReader(errorLogFile));
                         String line;
                         while ((line = errorReader.readLine()) != null) {
-                            sb.append(line);                      
+                            sb.append(line);
                         }
                         proc = proc + sb.toString();
                         errorReader.close();
@@ -322,7 +331,7 @@ public class Slave extends Thread {
                         wr1.newLine();
                         wr1.flush();
                     }
-            
+
                     try {
                         sleep(700);
                     } catch (InterruptedException ex) {
@@ -345,7 +354,7 @@ public class Slave extends Thread {
                     } catch (InterruptedException ex) {
                         Logger.getLogger(Slave.class.getName()).log(Level.SEVERE, null, ex);
                     }
-                } else {           
+                } else {
                     break;
                 }
 
@@ -378,7 +387,7 @@ public class Slave extends Thread {
                 wr1.flush();
 
                 Client.talker(reply, masterAddress, masterJobPort);
-            
+
             } else {
                 wr1.write("SUCCESS @ " + incomingJSON);
                 wr1.newLine();
@@ -399,7 +408,7 @@ public class Slave extends Thread {
 
                 System.out.println("sending :" + "SUCCESS @ " + reply);
 
-                Client.talker(reply, masterAddress, masterJobPort);             
+                Client.talker(reply, masterAddress, masterJobPort);
             }
 
         } catch (IOException ex) {
@@ -408,10 +417,10 @@ public class Slave extends Thread {
     }
 
     public static void talker(String message, String serverName, String portString) {
-    
+
         int port = Integer.parseInt(portString);
-        try {        
-            Socket client = new Socket(serverName, port);         
+        try {
+            Socket client = new Socket(serverName, port);
             OutputStream outToServer = client.getOutputStream();
             DataOutputStream out = new DataOutputStream(outToServer);
             out.writeUTF(message);
