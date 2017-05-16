@@ -97,7 +97,15 @@ public class WorkflowTree implements Serializable {
                 if (currentTime < tmpTime) {
                     currentTime = tmpTime;
                 }
-                addNodeChildrenToWaitingQueueOrBlockedQueue(justFinished, waitingQueue, blockedQueue);
+                if (!justFinished.component.lastExecutionFailed) {
+                    addNodeChildrenToWaitingQueueOrBlockedQueue(justFinished, waitingQueue, blockedQueue);
+                } else {
+                    System.out.println("Putting back to waiting queue: " + justFinished.component.name);
+                    justFinished.executionCompleted = true;
+                    justFinished.component.executionCompleted = true;
+                    waitingQueue.put(justFinished, "");
+                }
+
             }
 
             System.out.println("Waiting Queue: " + waitingQueue.size() + " Executing Queue: " + executingQueue.size() + " Blocked Queue: " + blockedQueue.size());
@@ -114,11 +122,7 @@ public class WorkflowTree implements Serializable {
             //  System.out.println("master waiting for something to finish");
             masterlock.waitFor();
             // System.out.println("master notified");
-            
-            if(executionComplete.isEmpty()) {
-                return null;
-            }
-            
+
             for (int i = 0; i < executingQueue.size(); i++) {
                 if (executingQueue.get(i) == executionComplete.get(0).node) {
                     executingQueue.remove(i);

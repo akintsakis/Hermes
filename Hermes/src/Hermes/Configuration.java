@@ -65,6 +65,7 @@ public class Configuration {
     public final String componentDescriptions;
 
     /* statically assigned parameters */
+    public static final String timeOut = "14400";  //configured on client in seconds
     public final Integer maxPortRetries = 10000;
     public final int numberOfFileRetrievalRetries = 3;
     public static final String containerUsernameForSSH = "root";

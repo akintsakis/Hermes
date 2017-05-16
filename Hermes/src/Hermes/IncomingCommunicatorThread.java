@@ -94,15 +94,16 @@ public class IncomingCommunicatorThread extends Thread {
 
                 currentNodeExecutionThread.NodeExecutionThreadQueue.wake();
                 if (jsonResponse.containsKey("NodeExecutionThreadFinalized")) {
-                    currentNodeExecutionThread.node.component.executionCompleted = true;
-                    buildFileRetrieveCommand(currentNodeExecutionThread);
                     Hermes.hermes.workflow.threadslock.lock();
                     if (success.equals("FAILURE")) {
-                        System.out.println("Putting back to waiting queue...");
-                        Hermes.hermes.workflow.waitingQueue.put(currentNodeExecutionThread.node, "");
+                        //System.out.println("Putting back to waiting queue...");
+                        currentNodeExecutionThread.node.component.executionCompleted = false;
+                        currentNodeExecutionThread.node.component.lastExecutionFailed = true;
                     } else {
-                        Hermes.hermes.workflow.executionComplete.add(currentNodeExecutionThread);
+                        currentNodeExecutionThread.node.component.executionCompleted = true;
+                        buildFileRetrieveCommand(currentNodeExecutionThread);
                     }
+                    Hermes.hermes.workflow.executionComplete.add(currentNodeExecutionThread);
                     Hermes.hermes.workflow.threadslock.unlock();
                     Hermes.hermes.workflow.masterlock.wake();
                     executingNow.remove((String) jsonResponse.get("NodeExecutionThreadId"));

@@ -147,6 +147,7 @@ public class NodeExecutionThread extends Thread {
         jsonCommand.put("NodeID", String.valueOf(node.id));
         jsonCommand.put("componentName", String.valueOf(node.component.name));
         jsonCommand.put("monitor", true);
+        jsonCommand.put("timeout", Configuration.timeOut);
         jsonCommand.put("inputOutputFileAssessment", Configuration.globalConfig.inputOutputFileAssessment);
         jsonCommand.put("command", node.component.command);
         jsonCommand.put("slotsUsed", node.component.slots);

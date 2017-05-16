@@ -33,6 +33,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.json.simple.JSONArray;
@@ -108,6 +109,20 @@ public class Slave extends Thread {
                 outputGobbler = new StreamGobbler(p.getInputStream(), "OUTPUT");
                 errorGobbler.start();
                 outputGobbler.start();
+                if (timeOut != 0) {
+                    if (!p.waitFor(timeOut, TimeUnit.SECONDS)) {
+                        p.destroy();
+                        sleep(1000);
+                        if (p.isAlive()) {
+                            p.destroyForcibly();
+                        }
+
+                        wr1.write("timeout reached at " + timeOut);
+                        wr1.newLine();
+                        wr1.flush();
+                        return "timeout";
+                    }
+                }
 
                 exitValue = p.waitFor();
                 exitValueString = String.valueOf(exitValue);
@@ -193,8 +208,11 @@ public class Slave extends Thread {
             resourceLogs = buildProcessLogsToJson(runTime);
         }
 
-        if (incomingJSON.containsKey(("OutputDataFiles"))) {
+        if (success && incomingJSON.containsKey(("OutputDataFiles"))) {
             outputSizesInB = assignOutputFileSizes(incomingJSON);
+        } else {
+            outputSizesInB.add("0");
+            outputSizesInB.add("0");
         }
         if (incomingJSON.containsKey(("InputDataFiles"))) {
             obj.put("InputDataFiles", incomingJSON.get("InputDataFiles"));
@@ -267,17 +285,20 @@ public class Slave extends Thread {
         int maxRetries = 5;
         int retries = maxRetries;
         boolean wasRetried = false;
+        boolean timeOutReached = false;
         try {
             long initTime = System.currentTimeMillis();
             long runTime = 0;
             startedAtSecond = (System.currentTimeMillis() / 1000L) - Client.topInitTimeStamp;
             startedAtUnixTimestamp = System.currentTimeMillis() / 1000L;
             String proc = "";
-            while (retries > 0) {
+            while (retries > 0 && !timeOutReached) {
 
                 runTime = 0;
                 String command = (String) incomingJSON.get("command");
-                timeOut = Long.valueOf((String) incomingJSON.get("timeout"));
+                if (incomingJSON.containsKey("timeout")) {
+                    timeOut = Long.parseLong((String) incomingJSON.get("timeout"));
+                }
                 System.out.println("Incoming JSON: " + incomingJSON.toJSONString());
                 wr1.newLine();
                 wr1.write("-----------------------");
@@ -349,6 +370,9 @@ public class Slave extends Thread {
                     wr1.newLine();
                     wr1.flush();
                     wasRetried = true;
+                    if (proc.equals("timeout")) {
+                        timeOutReached = true;
+                    }
                     try {
                         sleep(5000);
                     } catch (InterruptedException ex) {

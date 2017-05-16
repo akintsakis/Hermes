@@ -75,6 +75,7 @@ public class Component {
     double dataTransferredAsInputFiles = 0.0;
 
     boolean executionCompleted = false;
+    boolean lastExecutionFailed = false;
 
     String expression;
     public String threadsMin;
