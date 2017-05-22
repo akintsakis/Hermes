@@ -176,6 +176,7 @@ public class NodeExecutionThread extends Thread {
         if (node.component.runningWithNumOfThreads != null) {
             jsonCommand.put("threadsAssigned", node.component.runningWithNumOfThreads);
         }
+        jsonCommand.put("threadsUsedByComponent",node.component.threadsAssigned);
         jsonCommand.put("totalSystemCPUs", node.component.executedOnResource.siteThreadCount);
         jsonCommand.put("systemRAMSizeInMB", String.format("%.1f", node.component.executedOnResource.ramSizeInMB));
         jsonCommand.put("cpuSingleThreadedBenchmark", String.format("%.5f", node.component.executedOnResource.cpuSingleThreadedScore));

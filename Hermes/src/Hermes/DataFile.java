@@ -69,5 +69,9 @@ public class DataFile {
         pathOnResourceAndComp = r.containerUserHomePath + currentFolder + "/" + c.folderId + "/" + fileName;
         pathInResource.put(r, pathOnResourceAndComp);
     }
+    
+    public void clearFilePathForComponentAndResource(ExecutionSite r) {
+        pathInResource.remove(r);
+    }
 
 }

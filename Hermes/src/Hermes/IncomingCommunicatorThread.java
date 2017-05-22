@@ -95,11 +95,14 @@ public class IncomingCommunicatorThread extends Thread {
                 currentNodeExecutionThread.NodeExecutionThreadQueue.wake();
                 if (jsonResponse.containsKey("NodeExecutionThreadFinalized")) {
                     Hermes.hermes.workflow.threadslock.lock();
-                    if (success.equals("FAILURE")) {
+                    //remove extra runs
+                    if (success.equals("FAILURE") || currentNodeExecutionThread.node.component.extraRuns > 0) {
                         //System.out.println("Putting back to waiting queue...");
+                        currentNodeExecutionThread.node.component.extraRuns--;
                         currentNodeExecutionThread.node.component.executionCompleted = false;
                         currentNodeExecutionThread.node.component.lastExecutionFailed = true;
                     } else {
+                        currentNodeExecutionThread.node.component.lastExecutionFailed = false;
                         currentNodeExecutionThread.node.component.executionCompleted = true;
                         buildFileRetrieveCommand(currentNodeExecutionThread);
                     }

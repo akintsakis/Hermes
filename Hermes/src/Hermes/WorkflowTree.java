@@ -101,8 +101,10 @@ public class WorkflowTree implements Serializable {
                     addNodeChildrenToWaitingQueueOrBlockedQueue(justFinished, waitingQueue, blockedQueue);
                 } else {
                     System.out.println("Putting back to waiting queue: " + justFinished.component.name);
-                    justFinished.executionCompleted = true;
-                    justFinished.component.executionCompleted = true;
+                    justFinished.executionCompleted = false;
+                    justFinished.component.executionCompleted = false;
+                    justFinished.component.clearComponentOutputPathsAfterFailedRun();
+                    justFinished.component.restoreOriginalCommandForRerun();
                     waitingQueue.put(justFinished, "");
                 }
 

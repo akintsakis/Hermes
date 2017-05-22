@@ -36,6 +36,8 @@ public class Component {
     public static int componentIdCounter = 0;
     public String name;
     public int id;
+    
+    public int extraRuns = 0;
 
     String runningWithNumOfThreads;
     String folderId;
@@ -52,6 +54,7 @@ public class Component {
 
     String componentExecType;
     static final String userHomePath = System.getProperty("user.home");
+    String originalCommand;
     String command;
     double cpuUsagePercentage;
     double maxRamUsageInMb;
@@ -87,12 +90,22 @@ public class Component {
         id = componentIdCounter++;
         this.expression = expression;
         this.command = command;
+        this.originalCommand=command;
         this.inputDataFiles = inputDataFiles;
         this.outputDataFiles = outputDataFiles;
         this.executedOnResource = executedOnResource;
         loadParametersFromXml(Hermes.hermes.availableComponents.get(name));
         folderId = id + name;
+        
+        if(name.equals("mclBlastProtein")) {
+            extraRuns = 50;
+        }
+        
         allComponents.add(this);
+    }
+    
+    public void restoreOriginalCommandForRerun() {
+        command = originalCommand;
     }
 
     public void initComponentOnResourceNode() {
@@ -208,6 +221,15 @@ public class Component {
             file.setFilePathForComponentAndResource(executedOnResource, this);
         }
     }
+    
+        public void clearComponentOutputPathsAfterFailedRun() {
+        for (DataFile file : outputDataFiles) {
+            file.createdByComponent = null;
+            file.clearFilePathForComponentAndResource(executedOnResource);
+        }
+    }
+    
+    
 
     public void setOutputsRealFileSizesInB(String input) {
         String[] tmp = input.split(" ");

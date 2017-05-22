@@ -282,8 +282,8 @@ public class Slave extends Thread {
     }
 
     public void run() {
-        int maxRetries = 5;
-        int retries = maxRetries;
+        int maxTries = 1;
+        int retries = maxTries;
         boolean wasRetried = false;
         boolean timeOutReached = false;
         try {
@@ -338,19 +338,31 @@ public class Slave extends Thread {
 
                     File errorLogFile = new File(errorLog);
                     StringBuilder sb = new StringBuilder();
-                    if (errorLogFile.exists() && !(((String) incomingJSON.get("componentName")).equals("mclBlastProtein"))) {
+                    if (errorLogFile.exists()) {// && !(((String) incomingJSON.get("componentName")).equals("mclBlastProtein"))) {
                         BufferedReader errorReader = new BufferedReader(new FileReader(errorLogFile));
                         String line;
                         while ((line = errorReader.readLine()) != null) {
                             sb.append(line);
                         }
-                        proc = proc + sb.toString();
-                        errorReader.close();
-                        File tmpErrorLog = new File(errorLog);
-                        tmpErrorLog.delete();
-                        wr1.write("ERROR LOG: " + proc);
-                        wr1.newLine();
-                        wr1.flush();
+                        if (!sb.toString().contains("http://www.library.uu.nl/digiarchief/dip/diss/1895620/full.pdf")) {
+                            String err = sb.toString();
+                            String killed = "";
+                            if (err.contains("Killed")) {
+                                killed = "Killed";
+                            }
+
+                            err = err.replace("\"", "");
+                            if (err.length() > 1000) {
+                                err = "Killed " + err.substring(0, 1000);
+                            }
+                            proc = proc + killed + err;
+                            errorReader.close();
+                            File tmpErrorLog = new File(errorLog);
+                            tmpErrorLog.delete();
+                            wr1.write("ERROR LOG: " + proc);
+                            wr1.newLine();
+                            wr1.flush();
+                        }
                     }
 
                     try {
@@ -399,7 +411,7 @@ public class Slave extends Thread {
                 wr1.flush();
                 JSONObject jsonreply = prepareResponse(false, proc, runTime);
                 if (wasRetried) {
-                    jsonreply.put("wasRetriedTimes", String.valueOf(maxRetries - retries));
+                    jsonreply.put("wasRetriedTimes", String.valueOf(maxTries - retries));
                 }
                 if (!mscError.equals("")) {
                     jsonreply.put("mscError", mscError);
@@ -419,7 +431,7 @@ public class Slave extends Thread {
 
                 JSONObject jsonreply = prepareResponse(true, proc, runTime);
                 if (wasRetried) {
-                    jsonreply.put("wasRetriedTimes", String.valueOf(maxRetries - retries));
+                    jsonreply.put("wasRetriedTimes", String.valueOf(maxTries - retries));
                 }
                 if (!mscError.equals("")) {
                     jsonreply.put("mscError", mscError);
