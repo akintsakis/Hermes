@@ -29,8 +29,8 @@ import java.net.Socket;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.concurrent.CyclicBarrier;
-
 import net.neoremind.sshxcute.exception.TaskExecFailException;
+
 
 public class Hermes {
 
@@ -47,7 +47,7 @@ public class Hermes {
     final String workflowGraphMlInput;
     final String initialInputsFolderPathOnMaster;
 
-    private void buildResources() throws IOException, TaskExecFailException, Exception {
+    private void buildResources() throws IOException, Exception {
 
         ExecutionSite.masterPortForwardsToSitesStartFrom = Configuration.globalConfig.masterPortForwardsToSitesStartFrom;
         resources = new ArrayList<ExecutionSite>();
@@ -80,7 +80,7 @@ public class Hermes {
 
     }
 
-    void killAllResources() throws TaskExecFailException, IOException {
+    void killAllResources() throws IOException, TaskExecFailException {
         for (ExecutionSite a : resources) {
             a.shutDownResource();
         }

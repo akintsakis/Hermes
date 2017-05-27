@@ -18,6 +18,7 @@
  */
 package client;
 
+import com.google.gson.Gson;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.DataInputStream;
@@ -36,8 +37,6 @@ import java.util.Date;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.json.simple.JSONArray;
-import org.json.simple.JSONObject;
 
 public class Slave extends Thread {
 
@@ -51,7 +50,9 @@ public class Slave extends Thread {
     static ServerSocket jobSocket;
     static String masterAddress;
     static String masterJobPort;
-    JSONObject incomingJSON;
+    //JSONObject incomingJSON
+    JobRequest jobRequest;
+    JobResponse jobResponse;
     BufferedWriter wr1;
 
     public long startedAtSecond;
@@ -62,15 +63,17 @@ public class Slave extends Thread {
     String errorLog = "";
     long timeOut;
 
-    public JSONObject buildProcessLogsToJson(double runTime) {
-        JSONObject entry = new JSONObject();
+    Gson gson = new Gson();
+
+    public void buildProcessLogsToJson(double runTime) {
+        //JSONObject entry = new JSONObject();
         try {
-            ParseTop.logstoJson(entry, processLog, topLog, diskLog, startedAtSecond, startedAtUnixTimestamp, runTime);
+            ParseTop.logstoJson(jobResponse, processLog, topLog, diskLog, startedAtSecond, startedAtUnixTimestamp, runTime);
         } catch (IOException ex) {
             Logger.getLogger(Slave.class.getName()).log(Level.SEVERE, null, ex);
         }
 
-        return entry;
+        //return entry;
     }
 
     public static String waitForCommand() {
@@ -158,9 +161,11 @@ public class Slave extends Thread {
         return error;
     }
 
-    public Slave(int id, JSONObject incomingJSON, BufferedWriter wr1, String wrapper, String monitor, String baseDir, String componentRuntimeLogs, String diskLog, String topLog) {
+    public Slave(int id, JobRequest jobRequest, BufferedWriter wr1, String wrapper, String monitor, String baseDir, String componentRuntimeLogs, String diskLog, String topLog) {
         this.wr1 = wr1;
-        this.incomingJSON = incomingJSON;
+        this.jobRequest = jobRequest;
+        this.jobResponse = new JobResponse();
+        this.jobResponse.jobRequest = this.jobRequest;
         this.wrapper = wrapper;
         this.baseDir = baseDir;
         this.topLog = topLog;
@@ -169,93 +174,110 @@ public class Slave extends Thread {
         this.id = id;
     }
 
-    public void prepareRuntimeLog(JSONObject obj, JSONObject incoming, ArrayList<String> outputSizes, long runTime, JSONObject resourceLogs) throws IOException {
-        JSONArray runTimeLog = new JSONArray();
-        JSONObject entry = new JSONObject();
+    //   public void prepareRuntimeLog(JSONObject obj, JSONObject incoming, ArrayList<String> outputSizes, long runTime, JSONObject resourceLogs) throws IOException {
+//        JSONArray runTimeLog = new JSONArray();
+//        JSONObject entry = new JSONObject();
+//    entry.put (
+//
+//    "outputsRealFileSizesInB", outputSizes.get(0));
+//    entry.put (
+//
+//    "outputsRealFileSizesCustom", outputSizes.get(1));
+//        entry.put("inputsRealFileSizesInB", incomingJSON.get("inputsRealFileSizesInB"));
+//        entry.put("inputsRealFileSizesCustom", incomingJSON.get("inputsRealFileSizesCustom"));
+//        entry.put("resourceName", incoming.get("resourceName"));
 
-        entry.put("outputsRealFileSizesInB", outputSizes.get(0));
-        entry.put("outputsRealFileSizesCustom", outputSizes.get(1));
-        entry.put("inputsRealFileSizesInB", incomingJSON.get("inputsRealFileSizesInB"));
-        entry.put("inputsRealFileSizesCustom", incomingJSON.get("inputsRealFileSizesCustom"));
-        entry.put("resourceName", incoming.get("resourceName"));
+//        entry.put("slotsUsed", incoming.get("slotsUsed"));
+//        entry.put("componentName", incoming.get("componentName"));
+//    entry.put (
+//
+//    "runtimeInMs", String.valueOf(runTime));
 
-        entry.put("slotsUsed", incoming.get("slotsUsed"));
-        entry.put("componentName", incoming.get("componentName"));
-        entry.put("runtimeInMs", String.valueOf(runTime));
+//        entry.put("totalSystemCPUs", incomingJSON.get("totalSystemCPUs"));
+//        entry.put("systemRAMSizeInMB", incomingJSON.get("systemRAMSizeInMB"));
+//        entry.put("cpuSingleThreadedBenchmark", incomingJSON.get("cpuSingleThreadedBenchmark"));
+//        entry.put("cpuMultiThreadedBenchmark", incomingJSON.get("cpuMultiThreadedBenchmark"));
+//        if (incomingJSON.containsKey("threadsAssigned")) {
+//            entry.put("threadsAssigned", incomingJSON.get("threadsAssigned"));
+//        }
+//        if (runTime > 2000) {
+//            entry.put("ComponentResouceUseLogs", resourceLogs);
+//        }
+//
+//        entry.put("date", (new Date()).toString().replace(" ", "").replace(":", "_"));
+        
+//runTimeLog.add(entry);
+        
+        //obj.put("runTimeLog", runTimeLog);
+        //System.out.println(obj.toJSONString());
+ //   }
 
-        entry.put("totalSystemCPUs", incomingJSON.get("totalSystemCPUs"));
-        entry.put("systemRAMSizeInMB", incomingJSON.get("systemRAMSizeInMB"));
-        entry.put("cpuSingleThreadedBenchmark", incomingJSON.get("cpuSingleThreadedBenchmark"));
-        entry.put("cpuMultiThreadedBenchmark", incomingJSON.get("cpuMultiThreadedBenchmark"));
-        if (incomingJSON.containsKey("threadsAssigned")) {
-            entry.put("threadsAssigned", incomingJSON.get("threadsAssigned"));
-        }
-        if (runTime > 2000) {
-            entry.put("ComponentResouceUseLogs", resourceLogs);
-        }
-
-        entry.put("date", (new Date()).toString().replace(" ", "").replace(":", "_"));
-        runTimeLog.add(entry);
-        obj.put("runTimeLog", runTimeLog);
-        System.out.println(obj.toJSONString());
-    }
-
-    public JSONObject prepareResponse(Boolean success, String error, long runTime) throws IOException {
-        JSONObject obj = new JSONObject();
+    public void prepareResponse(Boolean success, String error, long runTime) throws IOException {
+        //JSONObject obj = new JSONObject();
         ArrayList<String> outputSizesInB = new ArrayList<String>();
-        JSONObject resourceLogs = new JSONObject();
+        //JSONObject resourceLogs = new JSONObject();
         if (runTime > 2000) {
-            resourceLogs = buildProcessLogsToJson(runTime);
+            buildProcessLogsToJson(runTime);
         }
 
-        if (success && incomingJSON.containsKey(("OutputDataFiles"))) {
-            outputSizesInB = assignOutputFileSizes(incomingJSON);
+        if (!jobRequest.outputDataFileIds.isEmpty()) {
+            outputSizesInB = assignOutputFileSizes();
         } else {
             outputSizesInB.add("0");
             outputSizesInB.add("0");
         }
-        if (incomingJSON.containsKey(("InputDataFiles"))) {
-            obj.put("InputDataFiles", incomingJSON.get("InputDataFiles"));
-        }
+//        if (incomingJSON.containsKey(("InputDataFiles"))) {
+//            obj.put("InputDataFiles", incomingJSON.get("InputDataFiles"));
+//        }
 
-        if (incomingJSON.containsKey("monitor") && (boolean) incomingJSON.get("monitor")) {
-            obj.put("monitor", incomingJSON.get("monitor"));
-        }
-
+//        if (incomingJSON.containsKey("monitor") && (boolean) incomingJSON.get("monitor")) {
+//            obj.put("monitor", incomingJSON.get("monitor"));
+//        }
         if (success) {
-            obj.put("success", true);
+            jobResponse.success = true;
+            //obj.put("success", true);
         } else {
-            obj.put("success", false);
-            obj.put("error", error);
+            jobResponse.success = false;
+            jobResponse.error = error;
+//            obj.put("success", false);
+//            obj.put("error", error);
         }
 
         //success &&  removed run only if success
-        if (incomingJSON.containsKey("monitor") && (boolean) incomingJSON.get("monitor")) {
-            prepareRuntimeLog(obj, incomingJSON, outputSizesInB, runTime, resourceLogs);
+        if (jobRequest.monitor) {
+            //prepareRuntimeLog(obj, incomingJSON, outputSizesInB, runTime, resourceLogs);
+
+            jobResponse.outputDataFileSizesBytes = outputSizesInB.get(0);
+            jobResponse.outputDataFileSizesCustom = outputSizesInB.get(1);
+            jobResponse.runtime = runTime;
+//            if (runTime > 2000) {
+//                
+//                entry.put("ComponentResouceUseLogs", resourceLogs);
+//            }
+
         }
 
-        obj.put("commandReceived", incomingJSON.get("command"));
-        obj.put("timestamp", (new Date()).toString());
-        obj.put("NodeExecutionThreadId", incomingJSON.get("NodeExecutionThreadId"));
-        obj.put("NodeID", incomingJSON.get("NodeID"));
+        jobResponse.dateCompleted = (new Date());
+//        obj.put("commandReceived", incomingJSON.get("command"));
+//        obj.put("NodeExecutionThreadId", incomingJSON.get("NodeExecutionThreadId"));
+//        obj.put("NodeID", incomingJSON.get("NodeID"));
 
-        if (incomingJSON.containsKey("NodeExecutionThreadFinalized")) {
-            obj.put("NodeExecutionThreadFinalized", true);
-        }
-
-        return obj;
+//        if (incomingJSON.containsKey("NodeExecutionThreadFinalized")) {
+//            obj.put("NodeExecutionThreadFinalized", true);
+//        }
+        //return obj;
     }
 
-    public ArrayList<String> assignOutputFileSizes(JSONObject incomingJSON) throws IOException {
-        JSONArray msg = (JSONArray) incomingJSON.get("OutputDataFiles");
+    public ArrayList<String> assignOutputFileSizes() throws IOException {
+        //JSONArray msg = (JSONArray) incomingJSON.get("OutputDataFiles");
         ArrayList<String> ret = new ArrayList<String>();
         StringBuilder bytesSB = new StringBuilder();
         StringBuilder customSB = new StringBuilder();
 
-        ArrayList<JSONObject> outputDataFiles = msg;
-        for (int i = 0; i < outputDataFiles.size(); i++) {
-            JSONObject dataFile = outputDataFiles.get(i);
-            File currentOutput = new File((String) dataFile.get("path"));
+        //ArrayList<JSONObject> outputDataFiles = msg;
+        for (int i = 0; i < jobRequest.outputDataFileIds.size(); i++) {
+            //JSONObject dataFile = outputDataFiles.get(i);
+            File currentOutput = new File(jobRequest.outputDataFilePaths.get(i));
             String fileSize;
 
             if (!currentOutput.exists()) {
@@ -270,10 +292,10 @@ public class Slave extends Thread {
                 bytesSB.append(fileSize).append(" ");
             }
 
-            if (incomingJSON.containsKey("inputOutputFileAssessment") && (boolean) incomingJSON.get("inputOutputFileAssessment")) {
-                customSB.append(DataFileEvaluationFunctions.selector((String) dataFile.get("path"), incomingJSON)).append(" ");
+            if (jobRequest.inputOutputFileAssessment) {
+                customSB.append(DataFileEvaluationFunctions.selector(jobRequest.outputDataFilePaths.get(i), jobRequest)).append(" ");
             }
-            dataFile.put("sizeInBytes", fileSize);
+            //dataFile.put("sizeInBytes", fileSize);
 
         }
         ret.add(bytesSB.toString());
@@ -295,11 +317,11 @@ public class Slave extends Thread {
             while (retries > 0 && !timeOutReached) {
 
                 runTime = 0;
-                String command = (String) incomingJSON.get("command");
-                if (incomingJSON.containsKey("timeout")) {
-                    timeOut = Long.parseLong((String) incomingJSON.get("timeout"));
+                String command = jobRequest.command;
+                if (jobRequest.timeout != null && jobRequest.timeout > 0) {
+                    timeOut = jobRequest.timeout;
                 }
-                System.out.println("Incoming JSON: " + incomingJSON.toJSONString());
+                System.out.println("Incoming JSON: " + gson.toJson(jobRequest));
                 wr1.newLine();
                 wr1.write("-----------------------");
                 wr1.newLine();
@@ -314,9 +336,9 @@ public class Slave extends Thread {
                 wr1.newLine();
                 wr1.flush();
 
-                if (incomingJSON.containsKey("monitor") && (boolean) incomingJSON.get("monitor")) {
+                if (jobRequest.monitor) {
 
-                    String componentID = (String) incomingJSON.get("componentID");
+                    String componentID = jobRequest.componentID;
                     wr1.newLine();
                     wr1.write("Monitor is activated");
                     wr1.newLine();
@@ -375,7 +397,7 @@ public class Slave extends Thread {
                     proc = executeBashScript(command.split(";"));
                 }
                 if (!proc.isEmpty()) {
-                    wr1.write("!!!!!!!!!!!!!!!!!!!!!FAILURE @ " + incomingJSON + "  " + proc);
+                    wr1.write("!!!!!!!!!!!!!!!!!!!!!FAILURE @ " + gson.toJson(jobRequest) + "  " + proc);
                     wr1.newLine();
                     wr1.write("will retry before reporting.. retrying attempt: " + retries);
                     retries = retries - 1;
@@ -406,18 +428,20 @@ public class Slave extends Thread {
             wr1.flush();
 
             if (!proc.isEmpty()) {
-                wr1.write("!!!!!!!!!!!!!!!!!!!!!FAILURE @ " + incomingJSON + "  " + proc);
+                wr1.write("!!!!!!!!!!!!!!!!!!!!!FAILURE @ " + gson.toJson(jobRequest) + "  " + proc);
                 wr1.newLine();
                 wr1.flush();
-                JSONObject jsonreply = prepareResponse(false, proc, runTime);
+
+                //JSONObject jsonreply = prepareResponse(false, proc, runTime);
+                prepareResponse(false, proc, runTime);
                 if (wasRetried) {
-                    jsonreply.put("wasRetriedTimes", String.valueOf(maxTries - retries));
+                    jobResponse.wasRetriedTimes = maxTries - retries;
                 }
                 if (!mscError.equals("")) {
-                    jsonreply.put("mscError", mscError);
+                    jobResponse.mscError = mscError;
                 }
 
-                String reply = jsonreply.toJSONString();
+                String reply = gson.toJson(jobResponse);
                 wr1.write("SENDING: " + reply);
                 wr1.newLine();
                 wr1.flush();
@@ -425,19 +449,19 @@ public class Slave extends Thread {
                 Client.talker(reply, masterAddress, masterJobPort);
 
             } else {
-                wr1.write("SUCCESS @ " + incomingJSON);
+                wr1.write("SUCCESS @ " + gson.toJson(jobRequest));
                 wr1.newLine();
                 wr1.flush();
 
-                JSONObject jsonreply = prepareResponse(true, proc, runTime);
+                prepareResponse(true, proc, runTime);
                 if (wasRetried) {
-                    jsonreply.put("wasRetriedTimes", String.valueOf(maxTries - retries));
+                    jobResponse.wasRetriedTimes = maxTries - retries;
                 }
                 if (!mscError.equals("")) {
-                    jsonreply.put("mscError", mscError);
+                    jobResponse.mscError = mscError;
                 }
 
-                String reply = jsonreply.toJSONString();
+                String reply = gson.toJson(jobResponse);
                 wr1.write("SENDING: " + reply);
                 wr1.newLine();
                 wr1.flush();

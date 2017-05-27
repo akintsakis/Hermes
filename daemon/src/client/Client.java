@@ -20,6 +20,7 @@ package client;
 
 import static client.Client.talker;
 import static client.Client.waitForCommand;
+import com.google.gson.Gson;
 
 import java.net.*;
 import java.io.*;
@@ -27,9 +28,6 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.util.Date;
 import java.util.List;
-import org.json.simple.JSONObject;
-import org.json.simple.parser.JSONParser;
-import org.json.simple.parser.ParseException;
 
 public class Client {
 
@@ -39,6 +37,7 @@ public class Client {
     private static String masterJobPort;
 
     public static long topInitTimeStamp;
+    static Gson gson = new Gson();
 
     public static String waitForCommand() {
         try {
@@ -84,13 +83,13 @@ public class Client {
     public static void terminateClient(BufferedWriter wr1, long startTime) throws IOException {
         System.out.println("END REACHED.. exiting");
 
-        JSONObject obj = new JSONObject();
-        obj.put("success", true);
-        obj.put("command", "Terminated");
-        obj.put("timestamp", (new Date()).toString());
-        String jsonText = obj.toJSONString();
+        //JSONObject obj = new JSONObject();
+        JobResponse jobResponse = new JobResponse();
+        jobResponse.success = true;
+        jobResponse.jobRequest.command = "Terminated";
+        jobResponse.dateStarted = new Date();
 
-        talker(jsonText, masterAddress, masterJobPort);
+        talker(gson.toJson(jobResponse), masterAddress, masterJobPort);
         wr1.write(String.valueOf((System.currentTimeMillis() - startTime)));
         wr1.newLine();
         wr1.write("success exit");
@@ -99,7 +98,7 @@ public class Client {
         wr1.close();
     }
 
-    public static void main(String[] args) throws IOException, InterruptedException, ParseException {
+    public static void main(String[] args) throws IOException, InterruptedException {
 
         int threadIdCount = 0;
         String baseDir = classPath.substring(0, classPath.indexOf("daemon"));
@@ -157,30 +156,23 @@ public class Client {
 
             wr1.flush();
             incoming = waitForCommand();
-            if (incoming.equals("ping")) {
-                Client.talker("pong", masterAddress, masterJobPort);
-            } else {
-                String[] tmp = incoming.split("_EOC_");
-                for (int i = 0; i < tmp.length; i++) {
-                    String currentCommand = tmp[i];
-                    JSONParser parser = new JSONParser();
-                    JSONObject incomingJSON = (JSONObject) parser.parse(currentCommand);
-                    if (terminateTrue(incomingJSON)) {
-                        terminateClient(wr1, startTime);
-                        break;
-                    }
-                    Slave t = new Slave(threadIdCount++, incomingJSON, wr1, wrapper, monitor, baseDir, componentRuntimeLogs, diskLog, topLog);
-                    t.start();
-                }
+            System.out.println(incoming);
+            JobRequest jobRequest = gson.fromJson(incoming, JobRequest.class);
+            String[] tmp = incoming.split("_EOC_");
+
+            if (terminateTrue(jobRequest)) {
+                terminateClient(wr1, startTime);
+                break;
             }
+            Slave t = new Slave(threadIdCount++, jobRequest, wr1, wrapper, monitor, baseDir, componentRuntimeLogs, diskLog, topLog);
+            t.start();
+
         }
     }
 
-    public static Boolean terminateTrue(JSONObject incomingJSON) {
-        if (incomingJSON.containsKey("terminate")) {
-            if ((boolean) incomingJSON.get("terminate")) {
-                return true;
-            }
+    public static Boolean terminateTrue(JobRequest jobRequest) {
+        if (jobRequest.terminate) {
+            return true;
         }
         return false;
     }

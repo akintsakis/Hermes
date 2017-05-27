@@ -18,6 +18,7 @@
  */
 package Hermes;
 
+import com.google.gson.Gson;
 import java.io.BufferedReader;
 import java.io.DataInputStream;
 import java.io.File;
@@ -33,13 +34,13 @@ import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import net.neoremind.sshxcute.exception.TaskExecFailException;
-import org.json.simple.JSONObject;
 
 public class FileRetriever extends Thread {
 
     public ServerSocket socket;
     static String workflowResultsFolder = System.getProperty("user.home") + "/hermes_workflow_results_" + Configuration.globalConfig.currentDate + "/";
     Long totalOutputFilesRetrieved = 0L;
+    Gson gson = new Gson();
     //Connection conn;
 
     FileRetriever() throws IOException {
@@ -179,16 +180,19 @@ public class FileRetriever extends Thread {
                 if (markedForDeletion.get(i).isDir) {
                     currentCommand = "sh;-c;rm -rf " + path.substring(0, path.lastIndexOf("/")) + "/";;
                 }
-                JSONObject jsonCommand = new JSONObject();
-                jsonCommand.put("command", currentCommand);
-                jsonCommand.put("NodeExecutionThreadId", "null");
+                //JSONObject jsonCommand = new JSONObject();
+                JobRequest jobRequest = new JobRequest();
+                jobRequest.command = currentCommand;
+                jobRequest.NodeExecutionThreadId = "null";
+                //jsonCommand.put("command", currentCommand);
+                //jsonCommand.put("NodeExecutionThreadId", "null");
                 try {
                     sleep(500);
                 } catch (InterruptedException ex) {
                     Logger.getLogger(FileRetriever.class.getName()).log(Level.SEVERE, null, ex);
                 }
 
-                site.passCommandToClientWithinContainer(jsonCommand.toJSONString(), null, 3);
+                site.passCommandToClientWithinContainer(gson.toJson(jobRequest), null, 3);
             }
         }
     }
@@ -230,8 +234,11 @@ public class FileRetriever extends Thread {
         p.getFileName();
         //String localFileName = workflowResultsFolder + "/";//+ componentIdentifier + "/";
         String localFileName = workflowResultsFolder + componentIdentifier + "/";
-        File f = new File(localFileName);
-        f.mkdirs();
+        //File f = new File(localFileName);
+        //f.mkdirs();
+        if(containerFilePath.endsWith("/")) {
+            containerFilePath = containerFilePath.substring(0, containerFilePath.length()-1);
+        }
         String containerParentFolderPath = containerFilePath.substring(0, containerFilePath.lastIndexOf("/")) + "/";
         String retrievedFileName = containerFilePath.substring(containerFilePath.lastIndexOf("/") + 1, containerFilePath.length());
         //System.out.println("retrieved file name: "+retrievedFileName);
@@ -240,9 +247,14 @@ public class FileRetriever extends Thread {
         //System.out.println("Retrieving: " + dataFile.id + "_" + dataFile.fileName + " isDirectory:" + dataFile.isDir);
         HermesLogKeeper.logFileRetriever("Retrieving: " + dataFile.id + "_" + dataFile.fileName + " isDirectory:" + dataFile.isDir);
 
-        if (dataFile.isDir) {
+        //always dir starts//
+        localFileName = workflowResultsFolder + "/";
+        //System.out.println(containerParentFolderPath);
+        //if (dataFile.isDir) {
             scpcommand = "sh;-c;scp -c arcfour -i " + Configuration.globalConfig.workflowTemporarySshKeyToAccessContainers + " -q -o StrictHostKeyChecking=no -C -r -P " + containerTunnelPort + " " + containerUsername + "@127.0.0.1:" + containerParentFolderPath + " " + localFileName;
-        }
+        //}
+        //System.out.println(scpcommand);
+        //always dir ends //
         HermesLogKeeper.logFileRetriever(scpcommand);
         boolean success = scpTransferWithRetries(scpcommand, localFileName);
         if (success) {

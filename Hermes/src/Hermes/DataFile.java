@@ -36,7 +36,7 @@ public class DataFile {
     boolean iSinitialInput = false;
     boolean isFinalOutput;
     boolean retrievedToMaster = false;
-    boolean isDir = false;
+    boolean isDir = true;
     Component createdByComponent;
 
     double realFileSizeInB;

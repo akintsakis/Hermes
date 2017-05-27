@@ -18,6 +18,7 @@
  */
 package Hermes;
 
+import com.google.gson.Gson;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -25,11 +26,10 @@ import java.util.Date;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import net.neoremind.sshxcute.exception.TaskExecFailException;
-import org.json.simple.JSONArray;
-import org.json.simple.JSONObject;
 
 public class NodeExecutionThread extends Thread {
 
+    Gson gson = new Gson();
     TreeNode node;
     int id;
     WorkflowTree workflow;
@@ -63,14 +63,14 @@ public class NodeExecutionThread extends Thread {
         }
     }
 
-    public void initializeComponentWorkingDirectory() throws TaskExecFailException, InterruptedException {
+    public void initializeComponentWorkingDirectory() throws InterruptedException {
         String currentCommand = "sh;-c;mkdir -p " + DataFile.currentFolder + "/" + node.component.folderId + "/";
-        JSONObject jsonCommand = new JSONObject();
-        jsonCommand.put("command", currentCommand);
-        jsonCommand.put("NodeExecutionThreadId", String.valueOf(id));
+        JobRequest jobRequest = new JobRequest();
+        jobRequest.command = currentCommand;
+        jobRequest.NodeExecutionThreadId = String.valueOf(id);
         //sendIt(jsonCommand.toJSONString(), node.component.executedOnResource.tunnelIP, node.component.executedOnResource.masterTunnelPortCommunications);
         sleep(300);
-        node.component.executedOnResource.passCommandToClientWithinContainer(jsonCommand.toJSONString(), node.component, 3);
+        node.component.executedOnResource.passCommandToClientWithinContainer(gson.toJson(jobRequest), node.component, 3);
         NodeExecutionThreadQueue.waitFor();
 
     }
@@ -91,11 +91,11 @@ public class NodeExecutionThread extends Thread {
 
     public void transferFile(ExecutionSite from, DataFile file, String componentFolder) throws InterruptedException {
         String currentCommand = "sh;-c;mkdir -p " + DataFile.currentFolder + "/" + componentFolder + "/";
-        JSONObject jsonCommandMakeDir = new JSONObject();
-        jsonCommandMakeDir.put("command", currentCommand);
-        jsonCommandMakeDir.put("NodeExecutionThreadId", String.valueOf(id));
+        JobRequest jobRequestMakeDir = new JobRequest();
+        jobRequestMakeDir.command = currentCommand;
+        jobRequestMakeDir.NodeExecutionThreadId = String.valueOf(id);
 
-        node.component.executedOnResource.passCommandToClientWithinContainer(jsonCommandMakeDir.toJSONString(), node.component, 3);
+        node.component.executedOnResource.passCommandToClientWithinContainer(gson.toJson(jobRequestMakeDir), node.component, 3);
         NodeExecutionThreadQueue.waitFor();
         if (file.pathInResource.get(from).contains("makeBlastProteinDB")) {
             Path p = Paths.get(file.pathInResource.get(from));
@@ -104,10 +104,10 @@ public class NodeExecutionThread extends Thread {
             String destinationPath = node.component.executedOnResource.containerUserHomePath + "/" + DataFile.currentFolder + "/" + componentFolder + "/" + p1.getParent().getFileName();
             String port = ExecutionSite.portMappings.get(String.valueOf(node.component.executedOnResource.id) + "_" + String.valueOf(from.id));
             String command = "sh;-c;scp -c arcfour -q -r -C -P " + port + " " + Configuration.globalConfig.containerUsernameForSSH + "@" + from.forwardedFileTransfersHostname + ":" + p1.getParent() + " " + destinationPath + " && du -h " + destinationPath + " && ls -la " + destinationPath;
-            JSONObject jsonCommandFileTransfer = new JSONObject();
-            jsonCommandFileTransfer.put("command", command);
-            jsonCommandFileTransfer.put("NodeExecutionThreadId", String.valueOf(id));
-            node.component.executedOnResource.passCommandToClientWithinContainer(jsonCommandFileTransfer.toJSONString(), node.component, 3);
+            JobRequest jobRequest = new JobRequest();
+            jobRequest.command = command;
+            jobRequest.NodeExecutionThreadId = String.valueOf(id);
+            node.component.executedOnResource.passCommandToClientWithinContainer(gson.toJson(jobRequest), node.component, 3);
             NodeExecutionThreadQueue.waitFor();
             file.pathInResource.put(node.component.executedOnResource, destinationPath + "/" + p1.getFileName());
         } else {
@@ -116,10 +116,11 @@ public class NodeExecutionThread extends Thread {
             String destinationPath = node.component.executedOnResource.containerUserHomePath + "/" + DataFile.currentFolder + "/" + componentFolder + "/" + p.getFileName().toString();
             String port = ExecutionSite.portMappings.get(String.valueOf(node.component.executedOnResource.id) + "_" + String.valueOf(from.id));
             String command = "sh;-c;scp -c arcfour -q -r -C -P " + port + " " + Configuration.globalConfig.containerUsernameForSSH + "@" + from.forwardedFileTransfersHostname + ":" + file.pathInResource.get(from) + " " + destinationPath + " && du -h " + destinationPath + " && ls -la " + destinationPath;
-            JSONObject jsonCommandFileTransfer = new JSONObject();
-            jsonCommandFileTransfer.put("command", command);
-            jsonCommandFileTransfer.put("NodeExecutionThreadId", String.valueOf(id));
-            node.component.executedOnResource.passCommandToClientWithinContainer(jsonCommandFileTransfer.toJSONString(), node.component, 3);
+
+            JobRequest jobRequestFileTransfer = new JobRequest();
+            jobRequestFileTransfer.command = command;
+            jobRequestFileTransfer.NodeExecutionThreadId = String.valueOf(id);
+            node.component.executedOnResource.passCommandToClientWithinContainer(gson.toJson(jobRequestFileTransfer), node.component, 3);
 
             NodeExecutionThreadQueue.waitFor();
             file.pathInResource.put(node.component.executedOnResource, destinationPath);
@@ -142,46 +143,46 @@ public class NodeExecutionThread extends Thread {
             customSB.append(String.valueOf(node.component.inputDataFiles.get(i).realFileSizeCustom)).append(" ");
         }
 
-        JSONObject jsonCommand = new JSONObject();
-        jsonCommand.put("componentID", String.valueOf(node.component.id));
-        jsonCommand.put("NodeID", String.valueOf(node.id));
-        jsonCommand.put("componentName", String.valueOf(node.component.name));
-        jsonCommand.put("monitor", true);
-        jsonCommand.put("timeout", Configuration.timeOut);
-        jsonCommand.put("inputOutputFileAssessment", Configuration.globalConfig.inputOutputFileAssessment);
-        jsonCommand.put("command", node.component.command);
-        jsonCommand.put("slotsUsed", node.component.slots);
-        jsonCommand.put("resourceName", node.component.executedOnResource.name);
-        JSONArray outputDataFilesList = new JSONArray();
+        //JSONObject jsonCommand = new JSONObject();
+        JobRequest jobRequest = new JobRequest();
+        jobRequest.componentID = String.valueOf(node.component.id);
+        jobRequest.NodeID = String.valueOf(node.id);
+        jobRequest.componentName = String.valueOf(node.component.name);
+        jobRequest.monitor = true;
+        jobRequest.timeout = Configuration.timeOut;
+        jobRequest.inputOutputFileAssessment = Configuration.globalConfig.inputOutputFileAssessment;
+        jobRequest.command = node.component.command;
+        jobRequest.slotsUsed = node.component.slots;
+        jobRequest.resourceName = node.component.executedOnResource.name;
+
         for (int i = 0; i < node.component.outputDataFiles.size(); i++) {
-            JSONObject datafile = new JSONObject();
-            datafile.put("ID", String.valueOf(node.component.outputDataFiles.get(i).id));
-            datafile.put("path", node.component.outputDataFiles.get(i).pathInResource.get(node.component.executedOnResource));
-            outputDataFilesList.add(datafile);
+            jobRequest.outputDataFileIds.add(node.component.outputDataFiles.get(i).id);
+            jobRequest.outputDataFilePaths.add(node.component.outputDataFiles.get(i).pathInResource.get(node.component.executedOnResource));
         }
 
-        JSONArray inputDataFilesList = new JSONArray();
         for (int i = 0; i < node.component.inputDataFiles.size(); i++) {
-            JSONObject datafile = new JSONObject();
-            datafile.put("ID", String.valueOf(node.component.inputDataFiles.get(i).id));
-            datafile.put("path", node.component.inputDataFiles.get(i).pathInResource.get(node.component.executedOnResource));
-            inputDataFilesList.add(datafile);
+            jobRequest.inputDataFileIds.add(node.component.inputDataFiles.get(i).id);
+            jobRequest.inputDataFilePaths.add(node.component.inputDataFiles.get(i).pathInResource.get(node.component.executedOnResource));
         }
-        jsonCommand.put("OutputDataFiles", outputDataFilesList);
-        jsonCommand.put("InputDataFiles", inputDataFilesList);
-        jsonCommand.put("inputsRealFileSizesInB", bytesSB.toString());
-        jsonCommand.put("inputsRealFileSizesCustom", customSB.toString());
-        jsonCommand.put("NodeExecutionThreadId", String.valueOf(id));
-        jsonCommand.put("NodeExecutionThreadFinalized", true);
+        
+        
+
+        jobRequest.inputsRealFileSizesInB = bytesSB.toString();
+        jobRequest.inputsRealFileSizesCustom = customSB.toString();
+        jobRequest.NodeExecutionThreadId = String.valueOf(id);
+        jobRequest.NodeExecutionThreadFinalized = true;
         if (node.component.runningWithNumOfThreads != null) {
-            jsonCommand.put("threadsAssigned", node.component.runningWithNumOfThreads);
+            jobRequest.threadsAssigned = node.component.runningWithNumOfThreads;
         }
-        jsonCommand.put("threadsUsedByComponent",node.component.threadsAssigned);
-        jsonCommand.put("totalSystemCPUs", node.component.executedOnResource.siteThreadCount);
-        jsonCommand.put("systemRAMSizeInMB", String.format("%.1f", node.component.executedOnResource.ramSizeInMB));
-        jsonCommand.put("cpuSingleThreadedBenchmark", String.format("%.5f", node.component.executedOnResource.cpuSingleThreadedScore));
-        jsonCommand.put("cpuMultiThreadedBenchmark", String.format("%.5f", node.component.executedOnResource.cpuMultithreadedScore));
-        node.component.executedOnResource.passCommandToClientWithinContainer(jsonCommand.toJSONString(), node.component, 3);
+        
+        jobRequest.threadsUsedByComponent = node.component.threadsAssigned;
+        jobRequest.totalSystemCPUs = node.component.executedOnResource.siteThreadCount;
+        jobRequest.systemRAMSizeInMB = String.format("%.1f", node.component.executedOnResource.ramSizeInMB);
+
+        jobRequest.cpuSingleThreadedBenchmark = String.format("%.5f", node.component.executedOnResource.cpuSingleThreadedScore);
+        jobRequest.cpuMultiThreadedBenchmark=String.format("%.5f", node.component.executedOnResource.cpuMultithreadedScore);
+        
+        node.component.executedOnResource.passCommandToClientWithinContainer(gson.toJson(jobRequest), node.component, 3);
         NodeExecutionThreadQueue.waitFor();
     }
 }

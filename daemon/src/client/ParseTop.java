@@ -18,15 +18,13 @@
  */
 package client;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileReader;
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.List;
-import org.json.simple.JSONObject;
 
 public class ParseTop {
 
@@ -35,9 +33,11 @@ public class ParseTop {
 
     public static HashMap<String, String> getProcesses(String filename) throws IOException {
         HashMap<String, String> processes = new HashMap<String, String>();
-        List<String> lines = Files.readAllLines(new File(filename).toPath(), StandardCharsets.UTF_8);
-        String t = lines.get(0);
-        for (String line : lines) {
+        //List<String> lines = Files.readAllLines(new File(filename).toPath(), StandardCharsets.UTF_8);
+        BufferedReader br = new BufferedReader(new FileReader(new File(filename)));
+        //String t = lines.get(0);
+        String line;
+        while ((line = br.readLine()) != null) {
             String[] tmp = line.split(" ");
             for (int i = 0; i < tmp.length; i++) {
                 if (!processes.containsKey(tmp[i])) {
@@ -51,27 +51,26 @@ public class ParseTop {
     public static ArrayList<Double> removePreceedingZeroes(ArrayList<Double> usagePerInterval, double runtime) {
         int numvalues = ((int) runtime + 1000) / 1000;
         ArrayList<Double> newUsagePerInterval = new ArrayList<Double>();
-
         if (usagePerInterval.size() > numvalues) {
             for (int i = 0; i < numvalues; i++) {
                 newUsagePerInterval.add(usagePerInterval.get(usagePerInterval.size() - numvalues + i));
             }
             return newUsagePerInterval;
         }
-
         return usagePerInterval;
-
     }
 
-    public static void parseDiskIOFile(JSONObject json, String filename, HashMap<String, String> processes, long startedAtUnixTimestamp, double runtime) throws IOException {
-        List<String> lines = Files.readAllLines(new File(filename).toPath(), StandardCharsets.UTF_8);
+    public static void parseDiskIOFile(JobResponse jobResponse, String filename, HashMap<String, String> processes, long startedAtUnixTimestamp, double runtime) throws IOException {
+        //List<String> lines = Files.readAllLines(new File(filename).toPath(), StandardCharsets.UTF_8);
+        BufferedReader br = new BufferedReader(new FileReader(new File(filename)));
         double totalReads = 0.0;
         double totalWrites = 0.0;
 
-        //double interval = 10.0;
-        for (int i = 0; i < lines.size(); i++) {
+        String line;
+        int i=0;
+        while ((line = br.readLine()) != null) {
 
-            String line = lines.get(i);
+            //String line = lines.get(i);
             if (i > 0) {
                 line = line.replaceAll(" +", " ");
                 if (line.length() > 10 && !line.contains("UID PID")) {
@@ -88,13 +87,14 @@ public class ParseTop {
                 }
             }
         }
-        json.put("totalReads", String.format("%.1f", totalReads));
-        json.put("totalWrites", String.format("%.1f", totalWrites));
+        jobResponse.totalReads= String.format("%.1f", totalReads);
+        jobResponse.totalWrites=String.format("%.1f", totalWrites);
+        i++;
 
     }
 
-    public static void parseTopFile(JSONObject json, String filename, HashMap<String, String> processes, long startedAtSecond, double runtime) throws IOException {
-        List<String> lines = Files.readAllLines(new File(filename).toPath(), StandardCharsets.UTF_8);
+    public static void parseTopFile(JobResponse jobResponse, String filename, HashMap<String, String> processes, long startedAtSecond, double runtime) throws IOException {
+        //List<String> lines = Files.readAllLines(new File(filename).toPath(), StandardCharsets.UTF_8);
         ArrayList<Double> cpuUsagePerInterval = new ArrayList<Double>();
         ArrayList<Double> memUsagePerInterval = new ArrayList<Double>();
 
@@ -106,8 +106,10 @@ public class ParseTop {
         long afterLines = (startedAtSecond / topInterval) - 5;
         long currentLine = -1;
         boolean start = false;
-        while (i < lines.size()) {// System.out.println(i);
-            String line = lines.get(i);
+        String line;
+        BufferedReader br = new BufferedReader(new FileReader(new File(filename)));
+        while ((line = br.readLine()) != null) {// System.out.println(i);
+            //String line = lines.get(i);
             //System.out.println(line);
 
             if (!start) {
@@ -164,17 +166,18 @@ public class ParseTop {
         averageCpuUsage = averageCpuUsage / (double) cpuUsagePerInterval.size();
         averageMemUsage = averageMemUsage / (double) cpuUsagePerInterval.size();
 
-        json.put("topIntervalTimeInSeconds", String.valueOf(topInterval));
-        json.put("averageCpuUsage", String.valueOf(averageCpuUsage));
-        json.put("averageMemUsage", String.valueOf(averageMemUsage));
+        jobResponse.topIntervalTimeInSeconds= String.valueOf(topInterval);
+        jobResponse.averageCpuUsage=String.valueOf(averageCpuUsage);
+        jobResponse.averageMemUsage=String.valueOf(averageMemUsage);
 
-        json.put("maxCpuUsage", String.valueOf(String.format("%.1f", Collections.max(cpuUsagePerInterval))));
+        jobResponse.maxCpuUsage=String.valueOf(String.format("%.1f", Collections.max(cpuUsagePerInterval)));
+        jobResponse.maxMemoryUsage=String.valueOf(String.format("%.1f", Collections.max(memUsagePerInterval)));
     }
 
-    public static void logstoJson(JSONObject incoming, String processFile, String topFile, String diskFile, long startedAtSecond, long startedAtUnixTimestamp, double runtime) throws IOException {
+    public static void logstoJson(JobResponse jobResponse, String processFile, String topFile, String diskFile, long startedAtSecond, long startedAtUnixTimestamp, double runtime) throws IOException {
         HashMap<String, String> processes = getProcesses(processFile);
-        parseTopFile(incoming, topFile, processes, startedAtSecond, runtime);
-        parseDiskIOFile(incoming, diskFile, processes, startedAtUnixTimestamp, runtime);
+        parseTopFile(jobResponse, topFile, processes, startedAtSecond, runtime);
+        parseDiskIOFile(jobResponse, diskFile, processes, startedAtUnixTimestamp, runtime);
 
     }
 

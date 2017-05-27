@@ -23,7 +23,6 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
-import org.json.simple.JSONObject;
 
 public class DataFileEvaluationFunctions {
 
@@ -32,7 +31,7 @@ public class DataFileEvaluationFunctions {
     public static final String blastproteindb = ".blastdbprotein";
     public static final String blastproteindbfolder = "makeBlastProteinDB";
 
-    public static String selector(String filename, JSONObject incomingJSON) throws IOException {
+    public static String selector(String filename, JobRequest jobRequest) throws IOException {
         //String type;
         String sizeOfFile = "1";
         if (filename.contains(fasta)) {
@@ -40,13 +39,13 @@ public class DataFileEvaluationFunctions {
         } else if (filename.contains(blastp)) {
             sizeOfFile = countLines(filename);
         } else if (filename.contains(blastproteindb) || filename.contains(blastproteindbfolder)) {
-            sizeOfFile = inheritCustomSizeOfInput1(filename, incomingJSON);
+            sizeOfFile = inheritCustomSizeOfInput1(filename, jobRequest);
         }
         return sizeOfFile;
     }
 
-    public static String inheritCustomSizeOfInput1(String file, JSONObject incomingJSON) {
-        String inputsCustom = (String) incomingJSON.get("inputsRealFileSizesCustom");
+    public static String inheritCustomSizeOfInput1(String file, JobRequest jobRequest) {
+        String inputsCustom = jobRequest.inputsRealFileSizesCustom;
         return (inputsCustom.split(" ")[0]);
     }
 

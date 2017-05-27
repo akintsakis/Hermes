@@ -18,6 +18,7 @@
  */
 package Hermes;
 
+import com.google.gson.Gson;
 import java.io.BufferedWriter;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
@@ -33,92 +34,83 @@ import java.util.Date;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.json.simple.JSONArray;
-import org.json.simple.JSONObject;
-import org.json.simple.parser.JSONParser;
-import org.json.simple.parser.ParseException;
 
 public class IncomingCommunicatorThread extends Thread {
 
+    Gson gson = new Gson();
     Lock NodeExecutionThreadQueue = new Lock();
     public ServerSocket socket;
     //WorkflowTree workflow;
     public ConcurrentHashMap<String, NodeExecutionThread> executingNow = new ConcurrentHashMap<String, NodeExecutionThread>();
 
     public void processIt(String response) throws InterruptedException {
-        JSONParser parser = new JSONParser();;
-        try {
-            JSONObject jsonResponse = (JSONObject) parser.parse(response);
-            String success = "FAILURE";
-            if (jsonResponse.containsKey("success") && (boolean) jsonResponse.get("success")) {
-                success = "SUCCESS";
+        //JSONParser parser = new JSONParser();;
+
+        JobResponse jobResponse = gson.fromJson(response, JobResponse.class);
+        //JSONObject jsonResponse = (JSONObject) parser.parse(response);
+        //String success = "FAILURE";
+
+        if (jobResponse.jobRequest.NodeExecutionThreadId != null && !jobResponse.jobRequest.NodeExecutionThreadId.equals("null")) {
+            NodeExecutionThread currentNodeExecutionThread = executingNow.get(jobResponse.jobRequest.NodeExecutionThreadId);
+            String potentialError = "None";
+            if (jobResponse.error != null) {
+                potentialError = jobResponse.error;
+            } else if (jobResponse.mscError != null) {
+                potentialError = "mscError detected, but successfully recovered";
             }
 
-            if (jsonResponse.containsKey("NodeExecutionThreadId") && !((String) jsonResponse.get("NodeExecutionThreadId")).equals("null")) {
-                NodeExecutionThread currentNodeExecutionThread = executingNow.get((String) jsonResponse.get("NodeExecutionThreadId"));
-                String potentialError = "None";
-                if (jsonResponse.containsKey("error")) {
-                    potentialError = jsonResponse.get("error").toString();
-                } else if (jsonResponse.containsKey("mscError")) {
-                    potentialError = "mscError detected, but successfully recovered";
+            HermesLogKeeper.logReceiver("+++RECEIVING+++ ::: " + currentNodeExecutionThread.node.component.executedOnResource.name + "  | component " + currentNodeExecutionThread.node.component.name + "| status " + jobResponse.success + " |error: " + potentialError);
+            HermesLogKeeper.logReceiver("FULL reply: " + response);
+
+            if (jobResponse.jobRequest.monitor) {
+                //ArrayList<JSONObject> jsonLog = (JSONArray) jsonResponse.get("runTimeLog");
+                //JSONObject entry = jsonLog.get(0);
+                File runtimeLogFile = new File(Configuration.globalConfig.locationOfHermesRootFolder + "/ComponentExecutionLogs/" + jobResponse.jobRequest.componentName + "/");
+                runtimeLogFile.mkdirs();
+                int numberOfexistingFiles = runtimeLogFile.listFiles().length;
+                try {
+                    BufferedWriter runtimeLogWriter = new BufferedWriter(new FileWriter(runtimeLogFile.getAbsolutePath() + "/" + String.valueOf(numberOfexistingFiles) + "_" + (new Date()).toString().replace(" ", "_").replace(":", "_")));
+                    runtimeLogWriter.write(gson.toJson(jobResponse));
+                    runtimeLogWriter.close();
+                } catch (IOException ex) {
+                    Logger.getLogger(NodeExecutionThread.class.getName()).log(Level.SEVERE, null, ex);
                 }
 
-                HermesLogKeeper.logReceiver("+++RECEIVING+++ ::: " + currentNodeExecutionThread.node.component.executedOnResource.name + "  | component " + currentNodeExecutionThread.node.component.name + "| status " + success + " |error: " + potentialError);
-                HermesLogKeeper.logReceiver("FULL reply: " + jsonResponse.toJSONString());
+                if (jobResponse.jobRequest.NodeID != null) {
+                    //ArrayList<JSONObject> jsonLog = (JSONArray) jsonResponse.get("runTimeLog");
+                    //JSONObject entry = jsonLog.get(0);
+                    TreeNode node = Hermes.hermes.workflow.allNodes.get(Integer.valueOf(jobResponse.jobRequest.NodeID));
 
-                if (jsonResponse.containsKey("monitor") && (boolean) jsonResponse.get("monitor")) {
-                    ArrayList<JSONObject> jsonLog = (JSONArray) jsonResponse.get("runTimeLog");
-                    JSONObject entry = jsonLog.get(0);
-                    File runtimeLogFile = new File(Configuration.globalConfig.locationOfHermesRootFolder + "/ComponentExecutionLogs/" + (String) entry.get("componentName") + "/");
-                    runtimeLogFile.mkdirs();
-                    int numberOfexistingFiles = runtimeLogFile.listFiles().length;
-                    try {
-                        BufferedWriter runtimeLogWriter = new BufferedWriter(new FileWriter(runtimeLogFile.getAbsolutePath() + "/" + String.valueOf(numberOfexistingFiles) + "_" + (new Date()).toString().replace(" ", "_").replace(":", "_")));
-                        runtimeLogWriter.write(jsonResponse.toJSONString());
-                        runtimeLogWriter.close();
-                    } catch (IOException ex) {
-                        Logger.getLogger(NodeExecutionThread.class.getName()).log(Level.SEVERE, null, ex);
+                    node.component.setOutputsRealFileSizesInB(jobResponse.outputDataFileSizesBytes);
+                    if (jobResponse.outputDataFileSizesCustom != null && Configuration.globalConfig.inputOutputFileAssessment) {
+                        node.component.setOutputsRealFileSizesCustom(jobResponse.outputDataFileSizesCustom);
                     }
-
-                    if (jsonResponse.containsKey("runTimeLog")) {
-                        //ArrayList<JSONObject> jsonLog = (JSONArray) jsonResponse.get("runTimeLog");
-                        //JSONObject entry = jsonLog.get(0);
-                        TreeNode node = Hermes.hermes.workflow.allNodes.get(Integer.valueOf((String) jsonResponse.get("NodeID")));
-
-                        node.component.setOutputsRealFileSizesInB((String) entry.get("outputsRealFileSizesInB"));
-                        if (entry.containsKey("outputsRealFileSizesCustom") && Configuration.globalConfig.inputOutputFileAssessment) {
-                            node.component.setOutputsRealFileSizesCustom((String) entry.get("outputsRealFileSizesCustom"));
-                        }
-                    }
-                }
-
-                currentNodeExecutionThread.NodeExecutionThreadQueue.wake();
-                if (jsonResponse.containsKey("NodeExecutionThreadFinalized")) {
-                    Hermes.hermes.workflow.threadslock.lock();
-                    //remove extra runs
-                    if (success.equals("FAILURE") || currentNodeExecutionThread.node.component.extraRuns > 0) {
-                        //System.out.println("Putting back to waiting queue...");
-                        currentNodeExecutionThread.node.component.extraRuns--;
-                        currentNodeExecutionThread.node.component.executionCompleted = false;
-                        currentNodeExecutionThread.node.component.lastExecutionFailed = true;
-                    } else {
-                        currentNodeExecutionThread.node.component.lastExecutionFailed = false;
-                        currentNodeExecutionThread.node.component.executionCompleted = true;
-                        buildFileRetrieveCommand(currentNodeExecutionThread);
-                    }
-                    Hermes.hermes.workflow.executionComplete.add(currentNodeExecutionThread);
-                    Hermes.hermes.workflow.threadslock.unlock();
-                    Hermes.hermes.workflow.masterlock.wake();
-                    executingNow.remove((String) jsonResponse.get("NodeExecutionThreadId"));
-                    System.out.println();
-                    System.out.println((new Date()).toString() + " - Component: " + currentNodeExecutionThread.node.component.id + "_" + currentNodeExecutionThread.node.component.name + " finished on site: " + currentNodeExecutionThread.node.component.executedOnResource.name + " status: " + success + " error: " + potentialError);
                 }
             }
 
-        } catch (ParseException ex) {
-            System.out.println("Incoming Communicatior received invalid message... ignoring");
-            //Logger.getLogger(NodeExecutionThread.class.getName()).log(Level.SEVERE, null, ex);
+            currentNodeExecutionThread.NodeExecutionThreadQueue.wake();
+            if (jobResponse.jobRequest.NodeExecutionThreadFinalized) {
+                Hermes.hermes.workflow.threadslock.lock();
+                //remove extra runs
+                if (!jobResponse.success || currentNodeExecutionThread.node.component.extraRuns > 0) {
+                    //System.out.println("Putting back to waiting queue...");
+                    currentNodeExecutionThread.node.component.extraRuns--;
+                    currentNodeExecutionThread.node.component.executionCompleted = false;
+                    currentNodeExecutionThread.node.component.lastExecutionFailed = true;
+                } else {
+                    currentNodeExecutionThread.node.component.lastExecutionFailed = false;
+                    currentNodeExecutionThread.node.component.executionCompleted = true;
+                    buildFileRetrieveCommand(currentNodeExecutionThread);
+                }
+                Hermes.hermes.workflow.executionComplete.add(currentNodeExecutionThread);
+                Hermes.hermes.workflow.threadslock.unlock();
+                Hermes.hermes.workflow.masterlock.wake();
+                executingNow.remove(jobResponse.jobRequest.NodeExecutionThreadId);
+                System.out.println();
+                System.out.println((new Date()).toString() + " - Component: " + currentNodeExecutionThread.node.component.id + "_" + currentNodeExecutionThread.node.component.name + " finished on site: " + currentNodeExecutionThread.node.component.executedOnResource.name + " statusSuccess: " + jobResponse.success + " error: " + potentialError);
+            }
         }
+
     }
 
     public String buildFileRetrieveCommand(NodeExecutionThread thread) {
