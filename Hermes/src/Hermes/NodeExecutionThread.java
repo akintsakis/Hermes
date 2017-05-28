@@ -106,6 +106,7 @@ public class NodeExecutionThread extends Thread {
             String command = "sh;-c;scp -c arcfour -q -r -C -P " + port + " " + Configuration.globalConfig.containerUsernameForSSH + "@" + from.forwardedFileTransfersHostname + ":" + p1.getParent() + " " + destinationPath + " && du -h " + destinationPath + " && ls -la " + destinationPath;
             JobRequest jobRequest = new JobRequest();
             jobRequest.command = command;
+            jobRequest.jobIsFileTransfer = true;
             jobRequest.NodeExecutionThreadId = String.valueOf(id);
             node.component.executedOnResource.passCommandToClientWithinContainer(gson.toJson(jobRequest), node.component, 3);
             NodeExecutionThreadQueue.waitFor();
@@ -120,6 +121,7 @@ public class NodeExecutionThread extends Thread {
             JobRequest jobRequestFileTransfer = new JobRequest();
             jobRequestFileTransfer.command = command;
             jobRequestFileTransfer.NodeExecutionThreadId = String.valueOf(id);
+            jobRequestFileTransfer.jobIsFileTransfer = true;
             node.component.executedOnResource.passCommandToClientWithinContainer(gson.toJson(jobRequestFileTransfer), node.component, 3);
 
             NodeExecutionThreadQueue.waitFor();
@@ -164,8 +166,6 @@ public class NodeExecutionThread extends Thread {
             jobRequest.inputDataFileIds.add(node.component.inputDataFiles.get(i).id);
             jobRequest.inputDataFilePaths.add(node.component.inputDataFiles.get(i).pathInResource.get(node.component.executedOnResource));
         }
-        
-        
 
         jobRequest.inputsRealFileSizesInB = bytesSB.toString();
         jobRequest.inputsRealFileSizesCustom = customSB.toString();
@@ -174,14 +174,14 @@ public class NodeExecutionThread extends Thread {
         if (node.component.runningWithNumOfThreads != null) {
             jobRequest.threadsAssigned = node.component.runningWithNumOfThreads;
         }
-        
+
         jobRequest.threadsUsedByComponent = node.component.threadsAssigned;
         jobRequest.totalSystemCPUs = node.component.executedOnResource.siteThreadCount;
         jobRequest.systemRAMSizeInMB = String.format("%.1f", node.component.executedOnResource.ramSizeInMB);
 
         jobRequest.cpuSingleThreadedBenchmark = String.format("%.5f", node.component.executedOnResource.cpuSingleThreadedScore);
-        jobRequest.cpuMultiThreadedBenchmark=String.format("%.5f", node.component.executedOnResource.cpuMultithreadedScore);
-        
+        jobRequest.cpuMultiThreadedBenchmark = String.format("%.5f", node.component.executedOnResource.cpuMultithreadedScore);
+
         node.component.executedOnResource.passCommandToClientWithinContainer(gson.toJson(jobRequest), node.component, 3);
         NodeExecutionThreadQueue.waitFor();
     }

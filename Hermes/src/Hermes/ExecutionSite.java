@@ -417,7 +417,7 @@ public class ExecutionSite extends Thread implements Comparable<ExecutionSite> {
         } catch (InterruptedException ex) {
             Logger.getLogger(ExecutionSite.class.getName()).log(Level.SEVERE, null, ex);
         }
-        executeCommand("docker exec " + Configuration.globalConfig.hermesWorkflowContainerName + " screen -S clientDaemon -X stuff 'java -jar " + "/home/user/" + DataFile.currentFolder + "/daemon/Client.jar " + "127.0.0.1" + " " + sshTunnelForwardedContainersMasterListeningPort + " " + clientListeningPort + " > clientRedirectOut 2>&1'`echo -ne '\\015'`", false, false);
+        executeCommand("docker exec " + Configuration.globalConfig.hermesWorkflowContainerName + " screen -S clientDaemon -X stuff 'java -jar " + "/home/user/" + DataFile.currentFolder + "/daemon/Client.jar " + "127.0.0.1" + " " + sshTunnelForwardedContainersMasterListeningPort + " " + clientListeningPort + " -Xms256m -Xmx1024m > clientRedirectOut 2>&1'`echo -ne '\\015'`", false, false);
     }
 
     public void shutDownResource() throws TaskExecFailException, IOException {
@@ -477,51 +477,50 @@ public class ExecutionSite extends Thread implements Comparable<ExecutionSite> {
     }
 
     private Double autoDetectCpuMultithreadedPerformance(Connection conn) throws IOException {
-//        Double cpuMultithreadedScore;
-//        Session sess = conn.openSession();
-//        sess.execCommand("docker exec " + Configuration.globalConfig.hermesWorkflowContainerName + " sysbench --test=cpu --num-threads="+siteThreadCount+" --cpu-max-prime=30000 run | grep \"total time:\"");
-//        InputStream stdout = new StreamGobbler(sess.getStdout());
-//        BufferedReader stdoutReader = new BufferedReader(new InputStreamReader(stdout));
-//        String line = stdoutReader.readLine();
-//        line = line.replaceAll(" +", "");
-//        line = line.split(":")[1];
-//        line = line.substring(0, line.length() - 1);
-//        cpuMultithreadedScore = Double.valueOf(line);
-//        cpuMultithreadedScore = 1.0 / cpuMultithreadedScore;
-//
-//        if (cpuMultithreadedScore == 0.1) {
-//            System.out.println("Fatal error, could not autodetect CPU power on site: " + name + " ...please set manually in .site file");
-//            System.exit(1);
-//        } else {
-//            System.out.println("Site :" + name + " CPU multithreaded score: " + cpuMultithreadedScore);
-//        }
-//        sess.close();
-//        return cpuMultithreadedScore;
-        return 0.06;
+        Double cpuMultithreadedScore;
+        Session sess = conn.openSession();
+        sess.execCommand("docker exec " + Configuration.globalConfig.hermesWorkflowContainerName + " sysbench --test=cpu --num-threads="+siteThreadCount+" --cpu-max-prime=30000 run | grep \"total time:\"");
+        InputStream stdout = new StreamGobbler(sess.getStdout());
+        BufferedReader stdoutReader = new BufferedReader(new InputStreamReader(stdout));
+        String line = stdoutReader.readLine();
+        line = line.replaceAll(" +", "");
+        line = line.split(":")[1];
+        line = line.substring(0, line.length() - 1);
+        cpuMultithreadedScore = Double.valueOf(line);
+        cpuMultithreadedScore = 1.0 / cpuMultithreadedScore;
+
+        if (cpuMultithreadedScore == 0.1) {
+            System.out.println("Fatal error, could not autodetect CPU power on site: " + name + " ...please set manually in .site file");
+            System.exit(1);
+        } else {
+            System.out.println("Site :" + name + " CPU multithreaded score: " + cpuMultithreadedScore);
+        }
+        sess.close();
+        return cpuMultithreadedScore;
     }
 
     private Double autoDetectCpuSinglethreadedPerformance(Connection conn) throws IOException {
-//        Double cpuSinglethreadedScore;
-//        Session sess = conn.openSession();
-//        sess.execCommand("docker exec " + Configuration.globalConfig.hermesWorkflowContainerName + " sysbench --test=cpu --num-threads=1 --cpu-max-prime=20000 run | grep \"total time:\"");
-//        InputStream stdout = new StreamGobbler(sess.getStdout());
-//        BufferedReader stdoutReader = new BufferedReader(new InputStreamReader(stdout));
-//        String line = stdoutReader.readLine();
-//        line = line.replaceAll(" +", "");
-//        line = line.split(":")[1];
-//        line = line.substring(0, line.length() - 1);
-//        cpuSinglethreadedScore = Double.valueOf(line);
-//        cpuSinglethreadedScore = 1.0 / cpuSinglethreadedScore;
-//
-//        if (cpuSinglethreadedScore == 0.1) {
-//            System.out.println("Fatal error, could not autodetect CPU power on site: " + name + " ...please set manually in .site file");
-//            System.exit(1);
-//        } else {
-//            System.out.println("Site :" + name + " CPU single threaded score: " + cpuSinglethreadedScore);
-//        }
-//        sess.close();
-//        return cpuSinglethreadedScore;
-        return 0.1;
+        Double cpuSinglethreadedScore;
+        Session sess = conn.openSession();
+        sess.execCommand("docker exec " + Configuration.globalConfig.hermesWorkflowContainerName + " sysbench --test=cpu --num-threads=1 --cpu-max-prime=20000 run | grep \"total time:\"");
+        InputStream stdout = new StreamGobbler(sess.getStdout());
+        BufferedReader stdoutReader = new BufferedReader(new InputStreamReader(stdout));
+        String line = stdoutReader.readLine();
+        line = line.replaceAll(" +", "");
+        line = line.split(":")[1];
+        line = line.substring(0, line.length() - 1);
+        cpuSinglethreadedScore = Double.valueOf(line);
+        cpuSinglethreadedScore = 1.0 / cpuSinglethreadedScore;
+
+        if (cpuSinglethreadedScore == 0.1) {
+            System.out.println("Fatal error, could not autodetect CPU power on site: " + name + " ...please set manually in .site file");
+            System.exit(1);
+        } else {
+            System.out.println("Site :" + name + " CPU single threaded score: " + cpuSinglethreadedScore);
+        }
+        sess.close();
+        return cpuSinglethreadedScore;
+
     }
 
     public static void copyDir(Connection conn, String localDirectory, String remoteTargetDirectory, boolean firstTime) throws IOException {

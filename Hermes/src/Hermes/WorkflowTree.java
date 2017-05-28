@@ -45,7 +45,7 @@ public class WorkflowTree implements Serializable {
     public LinkedHashMap<Integer, TreeNode> allNodes = new LinkedHashMap<Integer, TreeNode>();
     HashMap<TreeNode, String> allNodesCheck = new HashMap<TreeNode, String>();
 
-    public ArrayList<NodeExecutionThread> actuallyExecutingQueue = new ArrayList<NodeExecutionThread>();
+    //public ArrayList<NodeExecutionThread> actuallyExecutingQueue = new ArrayList<NodeExecutionThread>();
     public ArrayList<NodeExecutionThread> executionComplete = new ArrayList<NodeExecutionThread>();
 
     public ArrayList<ExecutionSite> resources;
@@ -77,7 +77,7 @@ public class WorkflowTree implements Serializable {
         for (ExecutionSite node : resources) {
             availableResources.add(node);
         }
-        actuallyExecutingQueue.clear();
+        //actuallyExecutingQueue.clear();
         executionComplete.clear();
 
         double currentTime = 0.0;
@@ -111,7 +111,12 @@ public class WorkflowTree implements Serializable {
             }
 
             System.out.println("Waiting Queue: " + waitingQueue.size() + " Executing Queue: " + executingQueue.size() + " Blocked Queue: " + blockedQueue.size());
-
+            System.out.print("In use: ");
+            for(TreeNode n : executingQueue) {
+                System.out.print(n.component.executedOnResource.name+",");
+            }
+            System.out.print("\n");
+            
         } while (waitingQueue.size() > 0 || executingQueue.size() > 0 || blockedQueue.size() > 0);
         System.out.println("All done, master finished");
         System.out.println("Total data transferred: " + (totalDataTransferAsInputFiles / (1024.0 * 1024.0)) + " MB");

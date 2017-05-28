@@ -86,10 +86,11 @@ public class ParseTop {
                     }
                 }
             }
+            i++;
         }
         jobResponse.totalReads= String.format("%.1f", totalReads);
         jobResponse.totalWrites=String.format("%.1f", totalWrites);
-        i++;
+        
 
     }
 

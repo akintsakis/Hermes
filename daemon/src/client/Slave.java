@@ -26,6 +26,7 @@ import java.io.DataOutputStream;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -112,24 +113,63 @@ public class Slave extends Thread {
                 outputGobbler = new StreamGobbler(p.getInputStream(), "OUTPUT");
                 errorGobbler.start();
                 outputGobbler.start();
-                if (timeOut != 0) {
-                    if (!p.waitFor(timeOut, TimeUnit.SECONDS)) {
+                
+                long ltimeout;
+                if(timeOut == 0) {
+                    ltimeout = jobRequest.maxTimeout;
+                } else {
+                    ltimeout = timeOut;
+                }
+                ltimeout = timeOut * 1000;
+                long startTime = System.currentTimeMillis();
+                
+                while (p.isAlive()) {
+                    sleep(5000);
+                    
+                    if(startTime - System.currentTimeMillis() > ltimeout) {
+                        wr1.write("timeout reached at " + timeOut);
+                        wr1.newLine();
+                        wr1.flush();
                         p.destroy();
                         sleep(1000);
                         if (p.isAlive()) {
                             p.destroyForcibly();
                         }
-
-                        wr1.write("timeout reached at " + timeOut);
+                        return "timeout";                        
+                    }
+                    if(getAvailMemory() < jobRequest.killProcessAvailMemoryLimit) {
+                        wr1.write("less than avail mem limit, terminating");
                         wr1.newLine();
                         wr1.flush();
-                        return "timeout";
+                        p.destroy();
+                        sleep(1000);
+                        if (p.isAlive()) {
+                            p.destroyForcibly();
+                        }
+                        return "less than avail mem limit, terminating";
                     }
+                    
+                    
                 }
-
-                exitValue = p.waitFor();
-                exitValueString = String.valueOf(exitValue);
-                p.destroy();
+                
+//                if (timeOut != 0) {
+//                    if (!p.waitFor(timeOut, TimeUnit.SECONDS)) {
+//                        p.destroy();
+//                        sleep(1000);
+//                        if (p.isAlive()) {
+//                            p.destroyForcibly();
+//                        }
+//
+//                        wr1.write("timeout reached at " + timeOut);
+//                        wr1.newLine();
+//                        wr1.flush();
+//                        return "timeout";
+//                    }
+//                }
+//
+//                exitValue = p.waitFor();
+//                exitValueString = String.valueOf(exitValue);
+//                p.destroy();
                 try {
                     wr1.write("exit value: " + exitValueString + " report: " + outputGobbler.output.toString() + " error: " + errorGobbler.output.toString());
                     wr1.newLine();
@@ -305,6 +345,9 @@ public class Slave extends Thread {
 
     public void run() {
         int maxTries = 1;
+        if(jobRequest.jobIsFileTransfer) {
+            maxTries =10;
+        }
         int retries = maxTries;
         boolean wasRetried = false;
         boolean timeOutReached = false;
@@ -490,6 +533,18 @@ public class Slave extends Thread {
             e.printStackTrace();
         }
 
+    }
+    
+    public static long getAvailMemory() throws IOException {
+        String[] cmd = {
+            "/bin/sh",
+            "-c",
+            "free | grep Mem | awk '{print $7}'"
+        };
+        Process proc = Runtime.getRuntime().exec(cmd);
+        BufferedReader stdInput = new BufferedReader(new InputStreamReader(proc.getInputStream()));
+        long availMemory = Long.parseLong(stdInput.readLine());
+        return availMemory;
     }
 
 }

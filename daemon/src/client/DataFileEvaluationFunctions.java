@@ -49,30 +49,38 @@ public class DataFileEvaluationFunctions {
         return (inputsCustom.split(" ")[0]);
     }
 
-    public static String countLines(String file) throws IOException {
-        BufferedReader reader = new BufferedReader(new FileReader(new File(file)));
-        int lines = 0;
-        while (reader.readLine() != null) {
-            lines++;
+    public static String countLines(String file) {
+        try {
+            BufferedReader reader = new BufferedReader(new FileReader(new File(file)));
+            int lines = 0;
+            while (reader.readLine() != null) {
+                lines++;
+            }
+            reader.close();
+            return String.valueOf(lines);
+        } catch (IOException e) {
+            return "0";
         }
-        reader.close();
-        return String.valueOf(lines);
     }
 
-    public static String countBasesFasta(String path) throws FileNotFoundException, IOException {
-        File f = new File(path);
+    public static String countBasesFasta(String path) {
+        try {
+            File f = new File(path);
 
-        BufferedReader r1 = new BufferedReader(new FileReader(f.getAbsolutePath()));
+            BufferedReader r1 = new BufferedReader(new FileReader(f.getAbsolutePath()));
 
-        String line;
-        int totalBases = 0;
+            String line;
+            int totalBases = 0;
 
-        while ((line = r1.readLine()) != null) {
-            if (!line.contains(">")) {
-                totalBases = totalBases + line.length();
+            while ((line = r1.readLine()) != null) {
+                if (!line.contains(">")) {
+                    totalBases = totalBases + line.length();
+                }
             }
+            return String.valueOf(totalBases);
+        } catch (IOException e) {
+            return "0";
         }
-        return String.valueOf(totalBases);
 
     }
 

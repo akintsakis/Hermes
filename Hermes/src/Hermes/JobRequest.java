@@ -30,10 +30,14 @@ public class JobRequest {
     public String componentName;
     public boolean monitor = false;
     public Long timeout;
+    public Long maxTimeout = 14400L;
     public boolean inputOutputFileAssessment;
     public boolean terminate = false;
+    public boolean jobIsFileTransfer = false;
+    public boolean isHeartBeat = false;
     public Integer slotsUsed;
     public String resourceName;
+    public long killProcessAvailMemoryLimit = 300000;
     
     public ArrayList<Integer> outputDataFileIds = new ArrayList<Integer>();
     public ArrayList<String> outputDataFilePaths = new ArrayList<String>();
