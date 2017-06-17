@@ -30,6 +30,8 @@ public class JobResponse {
     //String date;
     long runtime;
     int wasRetriedTimes;
+    boolean timeOutKilled = false;
+    boolean outOfMemoryKilled = false;
 
     String totalReads;
     String totalWrites;
@@ -38,7 +40,7 @@ public class JobResponse {
     String averageMemUsage;
     String maxCpuUsage;
     String maxMemoryUsage;
-    
+
     Date dateCompleted;
     Date dateStarted;
 

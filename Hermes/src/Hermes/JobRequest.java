@@ -29,7 +29,7 @@ public class JobRequest {
     public String NodeID;
     public String componentName;
     public boolean monitor = false;
-    public Long timeout;
+    public Long timeout = 0L;
     public Long maxTimeout = 14400L;
     public boolean inputOutputFileAssessment;
     public boolean terminate = false;
@@ -37,17 +37,17 @@ public class JobRequest {
     public boolean isHeartBeat = false;
     public Integer slotsUsed;
     public String resourceName;
-    public long killProcessAvailMemoryLimit = 300000;
+    public long killProcessAvailMemoryLimit = 400000L;
     
     public ArrayList<Integer> outputDataFileIds = new ArrayList<Integer>();
     public ArrayList<String> outputDataFilePaths = new ArrayList<String>();
     
     public ArrayList<Integer> inputDataFileIds = new ArrayList<Integer>();
-    public ArrayList<String> inputDataFilePaths = new ArrayList<String>();
+    //public ArrayList<String> inputDataFilePaths = new ArrayList<String>();
     
     public String inputsRealFileSizesInB;
     public String inputsRealFileSizesCustom;
-    public boolean NodeExecutionThreadFinalized;
+    public boolean NodeExecutionThreadFinalized = false;
     
     public String threadsAssigned;
     public Integer threadsUsedByComponent;

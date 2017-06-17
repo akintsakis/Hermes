@@ -164,7 +164,7 @@ public class NodeExecutionThread extends Thread {
 
         for (int i = 0; i < node.component.inputDataFiles.size(); i++) {
             jobRequest.inputDataFileIds.add(node.component.inputDataFiles.get(i).id);
-            jobRequest.inputDataFilePaths.add(node.component.inputDataFiles.get(i).pathInResource.get(node.component.executedOnResource));
+            //jobRequest.inputDataFilePaths.add(node.component.inputDataFiles.get(i).pathInResource.get(node.component.executedOnResource));
         }
 
         jobRequest.inputsRealFileSizesInB = bytesSB.toString();

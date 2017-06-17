@@ -97,9 +97,9 @@ public class Component {
         loadParametersFromXml(Hermes.hermes.availableComponents.get(name));
         folderId = id + name;
         
-        if(name.equals("mclBlastProtein")) {
-            extraRuns = 50;
-        }
+//        if(name.equals("mclBlastProtein")) {
+//            extraRuns = 18;
+//        }
         
         allComponents.add(this);
     }

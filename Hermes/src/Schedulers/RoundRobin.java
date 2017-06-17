@@ -20,12 +20,13 @@ import Hermes.TreeNode;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedHashMap;
+import java.util.Random;
 
 /**
  *
  * @author thanos
  */
-public class RandomScheduler implements Scheduler {
+public class RoundRobin implements Scheduler {
 
     @Override
     public TreeNode scheduleNextTaskAndUpdateQueues(ArrayList<ExecutionSite> availableResources, LinkedHashMap<TreeNode, String> waitingQueue) {
@@ -34,35 +35,49 @@ public class RandomScheduler implements Scheduler {
             return null;
         }
         TreeNode minNode = null;
+        ExecutionSite site = null;
         ArrayList<TreeNode> comps = new ArrayList(waitingQueue.keySet());
 
-        for (int i = 0; i < availableResources.size() * 10; i++) {
-            ExecutionSite site;
-            if (availableResources.size() == 1) {
-                site = availableResources.get(0);
-            } else {
-                site = availableResources.get((int) (Math.random() * availableResources.size()));
-            }
-            TreeNode node = comps.get((int) (Math.random() * comps.size()));
+        for (int i = 0; i < comps.size(); i++) {
+            TreeNode node = comps.get(i);
+            for (int j = 0; j < availableResources.size(); j++) {
+                site = availableResources.get(j);
 
-            Integer adjustedThreads;
-            if (node.component.threadsMin.equals("blockSite")) {
-                adjustedThreads = site.siteThreadCount;
-            } else {
-                adjustedThreads = Integer.valueOf(node.component.threadsMin);
+                Integer adjustedThreads;
+                if (node.component.threadsMin.equals("blockSite")) {
+                    adjustedThreads = site.siteThreadCount;
+                } else {
+                    adjustedThreads = Integer.valueOf(node.component.threadsMin);
+                }
+                if (site.availableSlots >= adjustedThreads) {
+                    minNode = node;
+                    break;
+                }
+
             }
-            if (site.availableSlots >= adjustedThreads) {
-                minNode = node;
+            if (minNode != null) {
                 break;
             }
 
         }
+//
+//        ExecutionSite site = availableResources.get(0);
+//        for (int i = 0; i < availableResources.size() * 10; i++) {
+//
+//            if (availableResources.size() == 1) {
+//                site = availableResources.get(0);
+//            } else {
+//                site = availableResources.get(new Random().nextInt(availableResources.size()));
+//            }
+//            TreeNode node = comps.get(new Random().nextInt(comps.size()));
+//
+//        }
 
         if (minNode == null) {
             return null;
         }
 
-        minNode.component.executedOnResource = availableResources.get(0);
+        minNode.component.executedOnResource = site;
 
         if (minNode.component.threadsMax.equals("all")) {
             minNode.component.setAssignedThreads(minNode.component.executedOnResource.availableSlots);

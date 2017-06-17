@@ -62,7 +62,8 @@ public class Slave extends Thread {
     String processLog = "";
     String mscError = "";
     String errorLog = "";
-    long timeOut;
+    String screenName;
+    //long timeOut;
 
     Gson gson = new Gson();
 
@@ -115,19 +116,21 @@ public class Slave extends Thread {
                 outputGobbler.start();
                 
                 long ltimeout;
-                if(timeOut == 0) {
+                if(jobRequest.timeout == 0) {
                     ltimeout = jobRequest.maxTimeout;
                 } else {
-                    ltimeout = timeOut;
+                    ltimeout = jobRequest.timeout;
                 }
-                ltimeout = timeOut * 1000;
+                ltimeout = ltimeout * 1000;
                 long startTime = System.currentTimeMillis();
-                
+                //System.out.println("timeout v is : "+ltimeout);
                 while (p.isAlive()) {
-                    sleep(5000);
                     
-                    if(startTime - System.currentTimeMillis() > ltimeout) {
-                        wr1.write("timeout reached at " + timeOut);
+                    long elapsed = System.currentTimeMillis() - startTime;
+                    System.out.println("elapsed: " + elapsed);
+                    if((elapsed > ltimeout) && jobRequest.NodeExecutionThreadFinalized) {
+                        System.out.println("time out killing...");
+                        wr1.write("timeout reached at " + ltimeout);
                         wr1.newLine();
                         wr1.flush();
                         p.destroy();
@@ -135,9 +138,13 @@ public class Slave extends Thread {
                         if (p.isAlive()) {
                             p.destroyForcibly();
                         }
+                        jobResponse.timeOutKilled = true;
                         return "timeout";                        
                     }
-                    if(getAvailMemory() < jobRequest.killProcessAvailMemoryLimit) {
+                    long availMemory = getAvailMemory();
+                    //System.out.println("avail memory: "+availMemory);
+                    if((availMemory < jobRequest.killProcessAvailMemoryLimit) && jobRequest.NodeExecutionThreadFinalized) {
+                        System.out.println("oom killing...");
                         wr1.write("less than avail mem limit, terminating");
                         wr1.newLine();
                         wr1.flush();
@@ -146,10 +153,14 @@ public class Slave extends Thread {
                         if (p.isAlive()) {
                             p.destroyForcibly();
                         }
+                        forceKillScreen();
+                        jobResponse.outOfMemoryKilled = true;
                         return "less than avail mem limit, terminating";
                     }
                     
-                    
+                    if(p.isAlive()) {
+                        sleep(2000);
+                    }
                 }
                 
 //                if (timeOut != 0) {
@@ -167,9 +178,9 @@ public class Slave extends Thread {
 //                    }
 //                }
 //
-//                exitValue = p.waitFor();
-//                exitValueString = String.valueOf(exitValue);
-//                p.destroy();
+                exitValue = p.waitFor();
+                exitValueString = String.valueOf(exitValue);
+                p.destroy();
                 try {
                     wr1.write("exit value: " + exitValueString + " report: " + outputGobbler.output.toString() + " error: " + errorGobbler.output.toString());
                     wr1.newLine();
@@ -350,20 +361,17 @@ public class Slave extends Thread {
         }
         int retries = maxTries;
         boolean wasRetried = false;
-        boolean timeOutReached = false;
+        //boolean timeOutReached = false;
         try {
             long initTime = System.currentTimeMillis();
             long runTime = 0;
             startedAtSecond = (System.currentTimeMillis() / 1000L) - Client.topInitTimeStamp;
             startedAtUnixTimestamp = System.currentTimeMillis() / 1000L;
             String proc = "";
-            while (retries > 0 && !timeOutReached) {
+            while (retries > 0 && !jobResponse.timeOutKilled && !jobResponse.outOfMemoryKilled) {
 
                 runTime = 0;
-                String command = jobRequest.command;
-                if (jobRequest.timeout != null && jobRequest.timeout > 0) {
-                    timeOut = jobRequest.timeout;
-                }
+                String command = jobRequest.command;               
                 System.out.println("Incoming JSON: " + gson.toJson(jobRequest));
                 wr1.newLine();
                 wr1.write("-----------------------");
@@ -389,7 +397,8 @@ public class Slave extends Thread {
                     String chCommand = command.replace("sh;-c;", "");
                     String errorLog = baseDir + "/" + componentID + ".errorLogTmp";
                     processLog = componentRuntimeLogs + "/logProcesses_" + componentID + ".process";
-                    chCommand = "sh;-c;bash " + wrapper + " " + "\"" + chCommand + " 2>" + errorLog + " " + "\"" + " " + "\"" + "sreenName_" + componentID + "\"" + " " + "\"" + processLog + "\"";
+                    screenName = "sreenName_" + componentID;
+                    chCommand = "sh;-c;bash " + wrapper + " " + "\"" + chCommand + " 2>" + errorLog + " " + "\"" + " " + "\"" + screenName + "\"" + " " + "\"" + processLog + "\"";
 
                     wr1.write("AlteredCommand: " + chCommand);
                     wr1.newLine();
@@ -447,9 +456,9 @@ public class Slave extends Thread {
                     wr1.newLine();
                     wr1.flush();
                     wasRetried = true;
-                    if (proc.equals("timeout")) {
-                        timeOutReached = true;
-                    }
+//                    if (proc.equals("timeout")) {
+//                        timeOutReached = true;
+//                    }
                     try {
                         sleep(5000);
                     } catch (InterruptedException ex) {
@@ -482,6 +491,10 @@ public class Slave extends Thread {
                 }
                 if (!mscError.equals("")) {
                     jobResponse.mscError = mscError;
+                }
+                
+                if(jobResponse.timeOutKilled) {
+                    forceKillScreen();
                 }
 
                 String reply = gson.toJson(jobResponse);
@@ -545,6 +558,15 @@ public class Slave extends Thread {
         BufferedReader stdInput = new BufferedReader(new InputStreamReader(proc.getInputStream()));
         long availMemory = Long.parseLong(stdInput.readLine());
         return availMemory;
+    }
+    
+    public void forceKillScreen() throws IOException {
+        String[] cmd = {
+            "/bin/sh",
+            "-c",
+            "screen -S " + screenName +" -X kill"
+        };
+        Process proc = Runtime.getRuntime().exec(cmd);
     }
 
 }

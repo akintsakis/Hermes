@@ -21,7 +21,7 @@ package Hermes;
 import Schedulers.FirstComeScheduler;
 import Schedulers.FpltDataIntensiveScheduler;
 import Schedulers.FpltScheduler;
-import Schedulers.RandomScheduler;
+import Schedulers.RoundRobin;
 import Schedulers.SimpleDataIntensiveScheduler;
 import Schedulers.Scheduler;
 import java.io.IOException;
@@ -170,7 +170,7 @@ public class WorkflowTree implements Serializable {
         LinkedHashMap<TreeNode, String> scheduledAndMarkedForRemoval = new LinkedHashMap<TreeNode, String>();
 
         while (!waitingQueue.isEmpty()) {
-            Scheduler scheduler = new RandomScheduler();
+            Scheduler scheduler = new RoundRobin();
             //Scheduler scheduler = new FpltDataIntensiveScheduler();            
             //Scheduler scheduler = new SimpleDataIntensiveScheduler();
             //Scheduler scheduler = new FpltScheduler();
