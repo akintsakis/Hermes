@@ -342,8 +342,8 @@ public class ExecutionSite extends Thread implements Comparable<ExecutionSite> {
         copyDir(conn, Configuration.globalConfig.locationOfHermesRootFolder + "/daemon/dist", dockerBuildFolder + "/dist/", true);
         copyDir(conn, Configuration.globalConfig.locationOfHermesRootFolder + "/ComponentMonitoring", dockerBuildFolder + "/ComponentMonitoring/", true);
         executeCommand("cd " + dockerBuildFolder + " && sed -i 's/updatePortNumber/" + String.valueOf(siteContainerSSHListeningPort) + "/g' Dockerfile", true, true);
-        System.out.println("Site: " + name + " Pulling docker image akintsakis/hermescomponents:latest (~1.8GB) ... if image does not exist locally it could take a while");
-        executeCommand("docker pull akintsakis/hermescomponents:latest", true, false);
+        System.out.println("Site: " + name + " Pulling docker image " + Configuration.dockerContainer + " ... if image does not exist locally it could take a while");
+        executeCommand("docker pull " + Configuration.dockerContainer, true, false);
         System.out.println("Site: " + name + " Building workflow container...");
         executeCommand("cd " + dockerBuildFolder + " && docker build -t " + Configuration.globalConfig.hermesWorkflowImageName + " --rm=true .", true, false);
         executeCommand("rm " + dockerBuildFolder + "/identityToHosts", false, false);
@@ -477,49 +477,51 @@ public class ExecutionSite extends Thread implements Comparable<ExecutionSite> {
     }
 
     private Double autoDetectCpuMultithreadedPerformance(Connection conn) throws IOException {
-        Double cpuMultithreadedScore;
-        Session sess = conn.openSession();
-        sess.execCommand("docker exec " + Configuration.globalConfig.hermesWorkflowContainerName + " sysbench --test=cpu --num-threads="+siteThreadCount+" --cpu-max-prime=30000 run | grep \"total time:\"");
-        InputStream stdout = new StreamGobbler(sess.getStdout());
-        BufferedReader stdoutReader = new BufferedReader(new InputStreamReader(stdout));
-        String line = stdoutReader.readLine();
-        line = line.replaceAll(" +", "");
-        line = line.split(":")[1];
-        line = line.substring(0, line.length() - 1);
-        cpuMultithreadedScore = Double.valueOf(line);
-        cpuMultithreadedScore = 1.0 / cpuMultithreadedScore;
-
-        if (cpuMultithreadedScore == 0.1) {
-            System.out.println("Fatal error, could not autodetect CPU power on site: " + name + " ...please set manually in .site file");
-            System.exit(1);
-        } else {
-            System.out.println("Site :" + name + " CPU multithreaded score: " + cpuMultithreadedScore);
-        }
-        sess.close();
-        return cpuMultithreadedScore;
+//        Double cpuMultithreadedScore;
+//        Session sess = conn.openSession();
+//        sess.execCommand("docker exec " + Configuration.globalConfig.hermesWorkflowContainerName + " sysbench --test=cpu --num-threads=" + siteThreadCount + " --cpu-max-prime=30000 run | grep \"total time:\"");
+//        InputStream stdout = new StreamGobbler(sess.getStdout());
+//        BufferedReader stdoutReader = new BufferedReader(new InputStreamReader(stdout));
+//        String line = stdoutReader.readLine();
+//        line = line.replaceAll(" +", "");
+//        line = line.split(":")[1];
+//        line = line.substring(0, line.length() - 1);
+//        cpuMultithreadedScore = Double.valueOf(line);
+//        cpuMultithreadedScore = 1.0 / cpuMultithreadedScore;
+//
+//        if (cpuMultithreadedScore == 0.1) {
+//            System.out.println("Fatal error, could not autodetect CPU power on site: " + name + " ...please set manually in .site file");
+//            System.exit(1);
+//        } else {
+//            System.out.println("Site :" + name + " CPU multithreaded score: " + cpuMultithreadedScore);
+//        }
+//        sess.close();
+//        return cpuMultithreadedScore;
+        return 0.1;
     }
 
     private Double autoDetectCpuSinglethreadedPerformance(Connection conn) throws IOException {
-        Double cpuSinglethreadedScore;
-        Session sess = conn.openSession();
-        sess.execCommand("docker exec " + Configuration.globalConfig.hermesWorkflowContainerName + " sysbench --test=cpu --num-threads=1 --cpu-max-prime=20000 run | grep \"total time:\"");
-        InputStream stdout = new StreamGobbler(sess.getStdout());
-        BufferedReader stdoutReader = new BufferedReader(new InputStreamReader(stdout));
-        String line = stdoutReader.readLine();
-        line = line.replaceAll(" +", "");
-        line = line.split(":")[1];
-        line = line.substring(0, line.length() - 1);
-        cpuSinglethreadedScore = Double.valueOf(line);
-        cpuSinglethreadedScore = 1.0 / cpuSinglethreadedScore;
-
-        if (cpuSinglethreadedScore == 0.1) {
-            System.out.println("Fatal error, could not autodetect CPU power on site: " + name + " ...please set manually in .site file");
-            System.exit(1);
-        } else {
-            System.out.println("Site :" + name + " CPU single threaded score: " + cpuSinglethreadedScore);
-        }
-        sess.close();
-        return cpuSinglethreadedScore;
+//        Double cpuSinglethreadedScore;
+//        Session sess = conn.openSession();
+//        sess.execCommand("docker exec " + Configuration.globalConfig.hermesWorkflowContainerName + " sysbench --test=cpu --num-threads=1 --cpu-max-prime=20000 run | grep \"total time:\"");
+//        InputStream stdout = new StreamGobbler(sess.getStdout());
+//        BufferedReader stdoutReader = new BufferedReader(new InputStreamReader(stdout));
+//        String line = stdoutReader.readLine();
+//        line = line.replaceAll(" +", "");
+//        line = line.split(":")[1];
+//        line = line.substring(0, line.length() - 1);
+//        cpuSinglethreadedScore = Double.valueOf(line);
+//        cpuSinglethreadedScore = 1.0 / cpuSinglethreadedScore;
+//
+//        if (cpuSinglethreadedScore == 0.1) {
+//            System.out.println("Fatal error, could not autodetect CPU power on site: " + name + " ...please set manually in .site file");
+//            System.exit(1);
+//        } else {
+//            System.out.println("Site :" + name + " CPU single threaded score: " + cpuSinglethreadedScore);
+//        }
+//        sess.close();
+//        return cpuSinglethreadedScore;
+        return 0.1;
 
     }
 
@@ -556,6 +558,7 @@ public class ExecutionSite extends Thread implements Comparable<ExecutionSite> {
     }
 
     public void cloneGitCodeRepo() throws IOException {
+        System.out.println("Site: " + name + " Cloning dependencies repo " + Configuration.globalConfig.gitCodeRepo);
         executeCommand("docker exec " + Configuration.globalConfig.hermesWorkflowContainerName + " rm -rf /home/user/Hermes", true, false);
         executeCommand("docker exec " + Configuration.globalConfig.hermesWorkflowContainerName + " git clone " + Configuration.globalConfig.gitCodeRepo, true, false);
         executeCommand("docker exec " + Configuration.globalConfig.hermesWorkflowContainerName + " mv ./HermesComponents ./Hermes", true, false);

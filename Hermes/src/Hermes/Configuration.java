@@ -73,10 +73,12 @@ public class Configuration {
     public final boolean useKeyNotPasswordForSSHtoSites = true;
     public final String initialInputsGraphMLAlias = "initialInputsFolder";
     public final String hermesWorkingDirName = "hermes_working_directory";
-    public final String gitCodeRepo = "https://github.com/akintsakis/HermesComponents.git";
+    public final String gitCodeRepo;// = "https://github.com/akintsakis/HermesComponents.git";
     
     public final String sampleInputFolder;
     public final String sampleWorkflow;
+    
+    public static String dockerContainer;
 
     /* inter program signals */
     public final String intraMasterTerminationSignal = "terminate_thread_immediately";
@@ -142,6 +144,9 @@ public class Configuration {
 
         hermesWorkflowImageName = generalConfiguration.getProperty("hermesWorkflowImageName");
         hermesWorkflowContainerName = generalConfiguration.getProperty("hermesWorkflowContainerName");
+        dockerContainer = generalConfiguration.getProperty("dockerContainer");
+        gitCodeRepo = generalConfiguration.getProperty("gitCodeRepo");
+        
         sshKeyToAccessSites = generalConfiguration.getProperty("pathToSSHKEy");
 
         if (!new File(sshKeyToAccessSites).exists()) {

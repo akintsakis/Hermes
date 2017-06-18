@@ -63,6 +63,39 @@ public class GraphmlToTreeNodes {
         graphMlRoot = findRoot(graph);
     }
 
+    public String getFileType(HashMap<String, String> vertexArgs) {
+        if (vertexArgs.containsKey("fileType")) {
+            return vertexArgs.get("fileType");
+        } else {
+            return "unknown";
+        }
+    }
+    
+    public String getThreadsMin(HashMap<String, String> vertexArgs) {
+        if (vertexArgs.containsKey("threadsMin")) {
+            return vertexArgs.get("threadsMin");
+        } else {
+            return "blockSite";
+        }
+    }
+    
+    public String getThreadsMax(HashMap<String, String> vertexArgs) {
+        if (vertexArgs.containsKey("threadsMax")) {
+            return vertexArgs.get("threadsMax");
+        } else {
+            return "all";
+        }
+    }
+    
+    public String getExpType(HashMap<String, String> vertexArgs) {
+        if (vertexArgs.containsKey("exp")) {
+            return vertexArgs.get("exp");
+        } else {
+            return "input1";
+        }
+    }
+    
+
     public ArrayList<Vertex> findVertexChildren(Vertex currentVertex) {
         Iterable<Edge> currentVertexEdges = currentVertex.getEdges(Direction.OUT, "_default");
         Iterator<Edge> edgesIterator = currentVertexEdges.iterator();
@@ -176,7 +209,7 @@ public class GraphmlToTreeNodes {
                     ArrayList<DataFile> in = new ArrayList<DataFile>();
                     if (vertexArgs.get("type").equals("DataFile")) {
                         String relativePath = vertexArgs.get("path");
-                        String fileType = vertexArgs.get("fileType");
+                        String fileType = getFileType(vertexArgs);
                         boolean isInitialInput = false;
                         if (vertexArgs.containsKey("initialInput") && vertexArgs.get("initialInput").equals("true")) {
                             isInitialInput = true;
@@ -238,7 +271,7 @@ public class GraphmlToTreeNodes {
                                 //System.out.println("[][][][][ "+relativePath);
                                 boolean isFinalOutputBool = false;
                                 boolean isDir = false;
-                                String fileType = vertexArgs.get("fileType");
+                                String fileType = getFileType(vertexArgs);
                                 if (vertexArgs.containsKey("finalOutput")) {
                                     String isFinalOutput = vertexArgs.get("finalOutput");
                                     if (isFinalOutput.equals("true")) {
@@ -305,7 +338,7 @@ public class GraphmlToTreeNodes {
             ArrayList<DataFile> out = new ArrayList<DataFile>();
 
             if (vertexArgsOfOut.get("type").equals("DataFile")) {
-                String fileType = vertexArgsOfOut.get("fileType");
+                String fileType = getFileType(vertexArgsOfOut);
                 String nameI = vertexArgsOfOut.get("path");
                 String fileName = "/CompName_" + vertexArgs.get("name") + "_" + nameI;//+"." + fileType;
 
@@ -340,7 +373,7 @@ public class GraphmlToTreeNodes {
                 for (int j = 0; j < numOfOutputs; j++) {
                     String nameI = vertexArgsOfOut.get("path");
                     //System.out.println("PATH IS :" + nameI);
-                    String fileType = vertexArgsOfOut.get("fileType");
+                    String fileType = getFileType(vertexArgsOfOut);
                     String fileName;
                     fileName = "/CompName_" + vertexArgs.get("name") + "_" + nameI + String.valueOf(j);
                     if (expression.contains("span")) {
@@ -453,15 +486,15 @@ public class GraphmlToTreeNodes {
         ArrayList<Vertex> inputVertexes = findVertexParents(componentVertex);
         TreeMap<Integer, ArrayList<DataFile>> currentComponentInputsOrdered = addInputsToVertexToData(inputVertexes, componentVertex);
 
-        String expression = vertexArgs.get("exp");
-        String threadsMin = "1";
-        if (vertexArgs.containsKey("threadsMin")) {
-            threadsMin = vertexArgs.get("threadsMin");
-        }
-        String threadsMax = threadsMin;
-        if (vertexArgs.containsKey("threadsMax")) {
-            threadsMax = vertexArgs.get("threadsMax");
-        }
+        String expression = getExpType(vertexArgs);//.get("exp");
+        String threadsMin = getThreadsMin(vertexArgs);//"1";
+//        if (vertexArgs.containsKey("threadsMin")) {
+//            threadsMin = vertexArgs.get("threadsMin");
+//        }
+        String threadsMax = getThreadsMax(vertexArgs);;
+//        if (vertexArgs.containsKey("threadsMax")) {
+//            threadsMax = vertexArgs.get("threadsMax");
+//        }
 
         ArrayList<ArrayList<DataFile>> inputsForEachRun = buildInputsForEachComponentRunFromExpression(expression, currentComponentInputsOrdered);
 
