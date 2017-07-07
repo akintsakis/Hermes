@@ -1,9 +1,9 @@
 # Hermes - Containerized high performance bioinformatics workflow execution
 
-##Intro 
+## Intro 
 Hermes introduces a new "describe once, run anywhere" paradigm for the execution of bioinformatics workflows in hybrid cloud environments. It combines the traditional features of parallelization-enabled workflow management systems and of distributed computing platforms in a container-based approach, while it offers seamless deployment, overcoming the burden of setting up and configuring the software and network requirements. Most importantly, Hermes guarantees the reproducibility of research by enforcing standardization of the execution environment, thus leading to consistent scientific results, cultivating collaboration between scientists and accelerating scientific output.
 
-##Dependencies
+## Dependencies
 The following dependencies exist for ALL sites where execution is to take place.
 
 * Supported operating systems include Linux distributions, however Hermes has only been tested in Ubuntu Linux 14.04 and 16.04
@@ -17,6 +17,9 @@ You should be able to connect to the localhost and all other provided sites pass
 * You must also install Java Oracle version 8 on all sites. 
 
 ## Step 1 - Configuration
+Videos for configuring/setting up Hermes along with instructions on how to create your own workflows can be found here:
+https://www.dropbox.com/sh/kackcc4a3rrpvgn/AACKtbBV4eJ8KW4oHqnch317a?dl=0
+
 Configuring Hermes is easy and straightforward. Open the configuration.config file in the root hermes projectfolder, the only parameter that you need to edit is the pathToSSHKEy.
 
 * Provide a value to the pathToSSHKEy parameter
@@ -69,3 +72,6 @@ Hermes is a distributed computing platform and as such network and authenticatio
 * While an image is being pulled from dockerhub, the connection is reset. In this case you need to cancel (ctrl-c) and re-run the workflow.
 * Sometimes the autodetect ip module might fail due to a network error, cancel (ctrl-c) and re-run the workflow
 * As the test workflows are cpu-intensive, when both the Hermes master and worker container are executed on a site with very limited resources (less than 2 cores) the workflow may stall, although this is rare. In that case please restart and re-run. No step should take a significant amount of time (more than a few minutes) while at the same time cpu usage must be high.
+
+## Comparison Against Swift
+The code and datasets in order to run the Hermes Use Cases against the Swift Parallel Scripting Language and perform a comparison can be found here: https://www.dropbox.com/sh/rj78mkj7mul10kq/AADncYlm0F1yxYJO7VPHbftma?dl=0
