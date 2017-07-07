@@ -16,6 +16,10 @@
  * Author: Athanassios Kintsakis
  * contact: akintsakis@issel.ee.auth.gr athanassios.kintsakis@gmail.com
  */
+
+/* This class contains the functions for reading the stdout/stderr logs of
+   externally launched processes.
+*/
 package client;
 
 import java.util.*;

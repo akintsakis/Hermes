@@ -16,6 +16,9 @@
  * Author: Athanassios Kintsakis
  * contact: akintsakis@issel.ee.auth.gr athanassios.kintsakis@gmail.com
  */
+
+/* This class represents a thread that handels the submission of a job to an external execution site */
+
 package Hermes;
 
 import java.io.IOException;

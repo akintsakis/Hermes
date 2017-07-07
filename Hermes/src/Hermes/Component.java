@@ -16,6 +16,9 @@
  * Author: Athanassios Kintsakis
  * contact: akintsakis@issel.ee.auth.gr athanassios.kintsakis@gmail.com
  */
+
+/* This class represents a computational process of the workflow */
+
 package Hermes;
 
 import java.io.File;

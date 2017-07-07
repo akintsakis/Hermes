@@ -16,6 +16,10 @@
  * Author: Athanassios Kintsakis
  * contact: akintsakis@issel.ee.auth.gr athanassios.kintsakis@gmail.com
  */
+
+/* This class contains the functions that convert the Workflow GraphML description
+   file to a Hermes Workflow tree that can then be executed by Hermes master.
+*/
 package Hermes;
 
 import com.tinkerpop.blueprints.Direction;

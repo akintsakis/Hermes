@@ -16,6 +16,11 @@
  * Author: Athanassios Kintsakis
  * contact: akintsakis@issel.ee.auth.gr athanassios.kintsakis@gmail.com
  */
+
+/* This class represents the Hermes workflow after being parsed from GraphML. It contains all
+   the functions and queues for executing the workflow DAG.
+*/
+
 package Hermes;
 
 import Schedulers.FirstComeScheduler;

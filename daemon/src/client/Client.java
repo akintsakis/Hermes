@@ -16,6 +16,12 @@
  * Author: Athanassios Kintsakis
  * contact: akintsakis@issel.ee.auth.gr athanassios.kintsakis@gmail.com
  */
+
+/* This is the Hermes daemon running on the execution sites within the Hermes container.
+   This class receives job submissions from Hermes master and then spawns Slave objects
+   that extend the Thread class and handle the job sumbissions.
+*/
+
 package client;
 
 import static client.Client.talker;

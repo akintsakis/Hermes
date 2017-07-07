@@ -16,6 +16,9 @@
  * Author: Athanassios Kintsakis
  * contact: akintsakis@issel.ee.auth.gr athanassios.kintsakis@gmail.com
  */
+
+/* This class represents a node of the Hermes Workflow Tree, which is a computational process of the Workflow */
+
 package Hermes;
 
 import java.util.ArrayList;

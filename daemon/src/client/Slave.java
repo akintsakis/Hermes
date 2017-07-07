@@ -16,6 +16,13 @@
  * Author: Athanassios Kintsakis
  * contact: akintsakis@issel.ee.auth.gr athanassios.kintsakis@gmail.com
  */
+
+
+/* This class represents a thread that is being spawned by the client everytime
+   a new job is received. The thread is responsible for parsing the job submission,
+   launching it in an external process, monitoring it during runtime for errors, timeout
+   or extensive memory usage and finally constructing the results.
+*/
 package client;
 
 import java.io.BufferedReader;

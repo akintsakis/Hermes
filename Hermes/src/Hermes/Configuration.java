@@ -16,6 +16,10 @@
  * Author: Athanassios Kintsakis
  * contact: akintsakis@issel.ee.auth.gr athanassios.kintsakis@gmail.com
  */
+
+/* This class contains all configuration options of Hermes, most of which are loaded
+   from the configuration file upon initialization.
+*/
 package Hermes;
 
 import java.io.BufferedReader;

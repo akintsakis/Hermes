@@ -16,6 +16,9 @@
  * Author: Athanassios Kintsakis
  * contact: akintsakis@issel.ee.auth.gr athanassios.kintsakis@gmail.com
  */
+
+/* This class contains functions to parse resource usage logs from top and pidstat */
+
 package client;
 
 import java.io.File;

@@ -16,6 +16,9 @@
  * Author: Athanassios Kintsakis
  * contact: akintsakis@issel.ee.auth.gr athanassios.kintsakis@gmail.com
  */
+
+/* The Hermes master main class */ 
+
 package Hermes;
 
 import java.io.DataOutputStream;

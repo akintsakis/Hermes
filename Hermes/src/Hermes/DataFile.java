@@ -16,6 +16,9 @@
  * Author: Athanassios Kintsakis
  * contact: akintsakis@issel.ee.auth.gr athanassios.kintsakis@gmail.com
  */
+
+/* This class represents a DataFile type of the Workflow */
+
 package Hermes;
 
 import java.util.ArrayList;

@@ -16,6 +16,11 @@
  * Author: Athanassios Kintsakis
  * contact: akintsakis@issel.ee.auth.gr athanassios.kintsakis@gmail.com
  */
+
+/* This class represents an execution site. It contains the necessary functions to
+   set the site up, including deploy the Hermes container, benchmark performnce and
+   set up the SSH tunnels.
+*/
 package Hermes;
 
 import com.jcraft.jsch.JSch;

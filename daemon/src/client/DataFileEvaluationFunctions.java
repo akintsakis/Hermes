@@ -16,6 +16,9 @@
  * Author: Athanassios Kintsakis
  * contact: akintsakis@issel.ee.auth.gr athanassios.kintsakis@gmail.com
  */
+
+/* This class contains functions for evaluating data files depending on their type */
+
 package client;
 
 import java.io.BufferedReader;

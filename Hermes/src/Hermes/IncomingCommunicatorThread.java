@@ -16,6 +16,12 @@
  * Author: Athanassios Kintsakis
  * contact: akintsakis@issel.ee.auth.gr athanassios.kintsakis@gmail.com
  */
+
+/* This class represents the IncomingCommunicatorThread, tasked with receiving
+   all incoming communications from the execution sites, including successful job
+   completion and failures.
+*/
+
 package Hermes;
 
 import java.io.BufferedWriter;

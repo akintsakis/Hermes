@@ -16,6 +16,10 @@
  * Author: Athanassios Kintsakis
  * contact: akintsakis@issel.ee.auth.gr athanassios.kintsakis@gmail.com
  */
+
+/* This class represents the FileRetriever thread, tasked with retrieving the job
+   output files from the execution sites.
+*/
 package Hermes;
 
 import java.io.BufferedReader;

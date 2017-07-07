@@ -16,6 +16,9 @@
  * Author: Athanassios Kintsakis
  * contact: akintsakis@issel.ee.auth.gr athanassios.kintsakis@gmail.com
  */
+
+/* A generic class implementing a lock for synchronization processes */ 
+
 package Hermes;
 
 public class Lock {
