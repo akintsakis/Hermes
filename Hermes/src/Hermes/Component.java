@@ -208,8 +208,8 @@ public class Component {
                 programPath = eElement.getElementsByTagName("path").item(0).getTextContent();
                 path2 = eElement.getElementsByTagName("path2").item(0).getTextContent();
                 name = eElement.getElementsByTagName("name").item(0).getTextContent();
-                slots = Integer.valueOf(eElement.getElementsByTagName("slots").item(0).getTextContent());
-                runtimeInMs = Double.valueOf(eElement.getElementsByTagName("defaultRunTimeInMs").item(0).getTextContent());
+                slots = 1;//Integer.valueOf(eElement.getElementsByTagName("slots").item(0).getTextContent());
+                runtimeInMs = 0;//Double.valueOf(eElement.getElementsByTagName("defaultRunTimeInMs").item(0).getTextContent());
             }
         }
     }

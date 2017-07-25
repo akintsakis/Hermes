@@ -46,6 +46,7 @@ public class Configuration {
     public final String hermesWorkflowImageName;
     public final String hermesWorkflowContainerName;
     public final String masterUsername;
+    public final String scheduler;
 
     public final Integer siteTunnelPortsStartFrom;
     public final Integer masterPortForwardsToSitesStartFrom;
@@ -65,7 +66,7 @@ public class Configuration {
     public final String componentDescriptions;
 
     /* statically assigned parameters */
-    public static final Long timeOut = 7200L;  //configured on client in seconds
+    public static Long timeOut;// = 7200L;  //configured on client in seconds
     public final Integer maxPortRetries = 10000;
     public final int numberOfFileRetrievalRetries = 3;
     public static final String containerUsernameForSSH = "root";
@@ -146,6 +147,8 @@ public class Configuration {
         hermesWorkflowContainerName = generalConfiguration.getProperty("hermesWorkflowContainerName");
         dockerContainer = generalConfiguration.getProperty("dockerContainer");
         gitCodeRepo = generalConfiguration.getProperty("gitCodeRepo");
+        scheduler = generalConfiguration.getProperty("scheduler");
+        timeOut = Long.parseLong(generalConfiguration.getProperty("timeout"));
         
         sshKeyToAccessSites = generalConfiguration.getProperty("pathToSSHKEy");
 

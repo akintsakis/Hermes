@@ -112,11 +112,11 @@ public class WorkflowTree implements Serializable {
 
             System.out.println("Waiting Queue: " + waitingQueue.size() + " Executing Queue: " + executingQueue.size() + " Blocked Queue: " + blockedQueue.size());
             System.out.print("In use: ");
-            for(TreeNode n : executingQueue) {
-                System.out.print(n.component.executedOnResource.name+",");
+            for (TreeNode n : executingQueue) {
+                System.out.print(n.component.executedOnResource.name + ",");
             }
             System.out.print("\n");
-            
+
         } while (waitingQueue.size() > 0 || executingQueue.size() > 0 || blockedQueue.size() > 0);
         System.out.println("All done, master finished");
         System.out.println("Total data transferred: " + (totalDataTransferAsInputFiles / (1024.0 * 1024.0)) + " MB");
@@ -170,7 +170,7 @@ public class WorkflowTree implements Serializable {
         LinkedHashMap<TreeNode, String> scheduledAndMarkedForRemoval = new LinkedHashMap<TreeNode, String>();
 
         while (!waitingQueue.isEmpty()) {
-            Scheduler scheduler = new RoundRobin();
+            Scheduler scheduler = selectScheduler();
             //Scheduler scheduler = new FpltDataIntensiveScheduler();            
             //Scheduler scheduler = new SimpleDataIntensiveScheduler();
             //Scheduler scheduler = new FpltScheduler();
@@ -253,5 +253,26 @@ public class WorkflowTree implements Serializable {
         for (Map.Entry<Integer, TreeNode> entry : allNodes.entrySet()) {
             entry.getValue().revert();
         }
+    }
+
+    public Scheduler selectScheduler() {
+        Scheduler scheduler = null;
+        if (Configuration.globalConfig.scheduler.toLowerCase().equals("roundrobin")) {
+            scheduler = new RoundRobin();
+        }
+        else if (Configuration.globalConfig.scheduler.toLowerCase().equals("fpltdataintensivescheduler")) {
+            scheduler = new FpltDataIntensiveScheduler();
+        }
+        else if (Configuration.globalConfig.scheduler.toLowerCase().equals("fpltscheduler")) {
+            scheduler = new FpltScheduler();
+        }
+        else if (Configuration.globalConfig.scheduler.toLowerCase().equals("simpledataintensivescheduler")) {
+            scheduler = new SimpleDataIntensiveScheduler();
+        } else {
+            System.out.println("Fatal error, non implemented scheduler selected. Exiting...");
+            System.exit(1);
+        }
+
+        return scheduler;
     }
 }
