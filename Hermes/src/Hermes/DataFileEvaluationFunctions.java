@@ -33,13 +33,16 @@ public class DataFileEvaluationFunctions {
     public static final String blastproteindb = ".blastdbprotein";
 
     public static String selector(String filename) throws IOException {   
-        String sizeOfFile = "1";
+        String sizeOfFile = "none";
         if (filename.contains(fasta)) {
             sizeOfFile = countBasesFasta(filename);
         } else if (filename.contains(blastp)) {
             sizeOfFile = countLines(filename);
         } else if (filename.contains(blastproteindb)) {
             //sizeOfFile = inheritCustomSizeOfInput1(filename);
+        }  else {
+            sizeOfFile = countLines(filename);
+            //jobResponse.customOutputSizeDefaultCountLines = true;
         }
         return sizeOfFile;
     }

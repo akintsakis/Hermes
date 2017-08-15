@@ -23,6 +23,7 @@ import Schedulers.FpltDataIntensiveScheduler;
 import Schedulers.FpltScheduler;
 import Schedulers.RoundRobin;
 import Schedulers.SimpleDataIntensiveScheduler;
+import Schedulers.RandomScheduler;
 import Schedulers.Scheduler;
 import java.io.IOException;
 import java.io.Serializable;
@@ -268,6 +269,8 @@ public class WorkflowTree implements Serializable {
         }
         else if (Configuration.globalConfig.scheduler.toLowerCase().equals("simpledataintensivescheduler")) {
             scheduler = new SimpleDataIntensiveScheduler();
+        } else if(Configuration.globalConfig.scheduler.toLowerCase().equals("randomscheduler")) {
+            scheduler = new RandomScheduler();
         } else {
             System.out.println("Fatal error, non implemented scheduler selected. Exiting...");
             System.exit(1);

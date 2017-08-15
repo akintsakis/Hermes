@@ -35,6 +35,7 @@ public class JobRequest {
     public boolean terminate = false;
     public boolean jobIsFileTransfer = false;
     public boolean isHeartBeat = false;
+    public boolean customInputSizeDefaultCountLines = false;
     public Integer slotsUsed;
     public String resourceName;
     public long killProcessAvailMemoryLimit = 400000L;

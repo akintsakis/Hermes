@@ -64,6 +64,7 @@ public class Configuration {
     //public final String initialInputsFolderPathOnMaster;
     public final String locationOfHermesRootFolder;
     public final String componentDescriptions;
+    public final String componentRuntimeDatasets;
 
     /* statically assigned parameters */
     public static Long timeOut;// = 7200L;  //configured on client in seconds
@@ -75,10 +76,10 @@ public class Configuration {
     public final String initialInputsGraphMLAlias = "initialInputsFolder";
     public final String hermesWorkingDirName = "hermes_working_directory";
     public final String gitCodeRepo;// = "https://github.com/akintsakis/HermesComponents.git";
-    
+
     public final String sampleInputFolder;
     public final String sampleWorkflow;
-    
+
     public static String dockerContainer;
 
     /* inter program signals */
@@ -124,15 +125,15 @@ public class Configuration {
         configFile = locationOfHermesRootFolder + "configuration.config";
         dockerbuildfile = locationOfHermesRootFolder + "/InternalDockerFile/Dockerfile";
         workflowTemporarySshKeyToAccessContainers = locationOfHermesRootFolder + "/currentWorkflowGeneratedIdentityKey";
-        componentDescriptions=locationOfHermesRootFolder + "Componentdescriptions";
-        sampleWorkflow=locationOfHermesRootFolder + "/WorkflowGraphs/pangenome_analysis_workflow.graphml";
+        componentDescriptions = locationOfHermesRootFolder + "Componentdescriptions";
+        componentRuntimeDatasets = locationOfHermesRootFolder + "ComponentRuntimeDatasets";
+        sampleWorkflow = locationOfHermesRootFolder + "/WorkflowGraphs/pangenome_analysis_workflow.graphml";
         sampleInputFolder = locationOfHermesRootFolder + "/WorkflowSampleInputs/SmallSampleInput/";
-        
 
         Properties generalConfiguration = getConfigFileProperties(configFile);
 
         globalMasterListeningPort = generalConfiguration.getProperty("masterListeningPort");
-        if (generalConfiguration.getProperty("masterIpAddress").equals("autodetect")) {            
+        if (generalConfiguration.getProperty("masterIpAddress").equals("autodetect")) {
             globalMasterIpAddress = getMasterIp();
         } else {
             globalMasterIpAddress = generalConfiguration.getProperty("masterIpAddress");
@@ -149,7 +150,7 @@ public class Configuration {
         gitCodeRepo = generalConfiguration.getProperty("gitCodeRepo");
         scheduler = generalConfiguration.getProperty("scheduler");
         timeOut = Long.parseLong(generalConfiguration.getProperty("timeout"));
-        
+
         sshKeyToAccessSites = generalConfiguration.getProperty("pathToSSHKEy");
 
         if (!new File(sshKeyToAccessSites).exists()) {

@@ -18,6 +18,7 @@
  */
 package Hermes;
 
+import Models.Parsers;
 import java.io.DataOutputStream;
 import java.io.File;
 import java.io.FilenameFilter;
@@ -171,6 +172,8 @@ public class Hermes {
 
         hermes.loadComponentList(Configuration.globalConfig.componentDescriptions);
 
+        //Parsers.createDatasets("/home/thanos/Dropbox/Code/Hermes/Hermes/ComponentExecutionLogs/ComponentExecutionLogsMay26/blastProteinDistributed","blastProteinDistributed", "/home/thanos/Dropbox/Code/Hermes/Hermes/Models/Datasets");
+        //System.exit(0);
         System.out.println("Initializing sites...");
         hermes.buildResources();
         System.out.println("Site initialization complete!");

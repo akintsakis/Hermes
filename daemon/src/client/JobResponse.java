@@ -32,6 +32,7 @@ public class JobResponse {
     int wasRetriedTimes;
     boolean timeOutKilled = false;
     boolean outOfMemoryKilled = false;
+    boolean customOutputSizeDefaultCountLines = false;
 
     String totalReads;
     String totalWrites;

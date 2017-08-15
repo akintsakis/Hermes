@@ -344,7 +344,7 @@ public class Slave extends Thread {
             }
 
             if (jobRequest.inputOutputFileAssessment) {
-                customSB.append(DataFileEvaluationFunctions.selector(jobRequest.outputDataFilePaths.get(i), jobRequest)).append(" ");
+                customSB.append(DataFileEvaluationFunctions.selector(jobRequest.outputDataFilePaths.get(i), jobRequest, jobResponse)).append(" ");
             }
             //dataFile.put("sizeInBytes", fileSize);
 
