@@ -70,7 +70,7 @@ public class GraphmlToTreeNodes {
             return "unknown";
         }
     }
-    
+
     public String getThreadsMin(HashMap<String, String> vertexArgs) {
         if (vertexArgs.containsKey("threadsMin")) {
             return vertexArgs.get("threadsMin");
@@ -78,7 +78,7 @@ public class GraphmlToTreeNodes {
             return "blockSite";
         }
     }
-    
+
     public String getThreadsMax(HashMap<String, String> vertexArgs) {
         if (vertexArgs.containsKey("threadsMax")) {
             return vertexArgs.get("threadsMax");
@@ -86,7 +86,7 @@ public class GraphmlToTreeNodes {
             return "all";
         }
     }
-    
+
     public String getExpType(HashMap<String, String> vertexArgs) {
         if (vertexArgs.containsKey("exp")) {
             return vertexArgs.get("exp");
@@ -94,7 +94,6 @@ public class GraphmlToTreeNodes {
             return "input1";
         }
     }
-    
 
     public ArrayList<Vertex> findVertexChildren(Vertex currentVertex) {
         Iterable<Edge> currentVertexEdges = currentVertex.getEdges(Direction.OUT, "_default");
@@ -239,15 +238,12 @@ public class GraphmlToTreeNodes {
                                 System.out.println(f.getAbsolutePath());
                                 System.exit(1);
                             }
-                            file.realFileSizeInB = (double) (f).length();
-                            if (Configuration.globalConfig.inputOutputFileAssessment) {
-                                file.realFileSizeCustom = Double.valueOf(DataFileEvaluationFunctions.selector(f.getAbsolutePath()));
-                            }
+                            DataFileEvaluationFunctions.selector(f.getAbsolutePath(), file.metrics, Configuration.globalConfig.inputOutputFileAssessment);
 
-                            if (file.realFileSizeInB == 0.0) {
-                                System.out.println("FATAL ERROR, initial input size and custom size values not set");
-                                System.exit(1);
-                            }
+//                            if (file.realFileSizeInB == 0.0) {
+//                                System.out.println("FATAL ERROR, initial input size and custom size values not set");
+//                                System.exit(1);
+//                            }
                         }
                         in.add(file);
                     } else if (vertexArgs.get("type").equals("DataFile[]")) {
@@ -288,16 +284,13 @@ public class GraphmlToTreeNodes {
 
                                 DataFile file = new DataFile(relativePath, fileType, isInitialInput, isFinalOutputBool, isDir);
                                 File f = new File(file.pathInResource.get(DataFile.initResourceNode));
-                                file.realFileSizeInB = (double) (f).length();
 
-                                if (Configuration.globalConfig.inputOutputFileAssessment) {
-                                    file.realFileSizeCustom = Double.valueOf(DataFileEvaluationFunctions.selector(f.getAbsolutePath()));
-                                }
+                                DataFileEvaluationFunctions.selector(f.getAbsolutePath(), file.metrics, Configuration.globalConfig.inputOutputFileAssessment);
 
-                                if (file.realFileSizeInB == 0.0) {//|| file.realFileSizeCustom == 0.0) {
-                                    System.out.println("FATAL ERROR, initial input size and custom size values not set");
-                                    System.exit(0);
-                                }
+//                                if (file.realFileSizeInB == 0.0) {//|| file.realFileSizeCustom == 0.0) {
+//                                    System.out.println("FATAL ERROR, initial input size and custom size values not set");
+//                                    System.exit(0);
+//                                }
                                 in.add(file);
                             }
                         } else {

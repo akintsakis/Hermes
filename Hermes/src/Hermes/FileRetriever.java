@@ -292,6 +292,7 @@ public class FileRetriever extends Thread {
             ExecutionSite.deleteDockerKey();
             HermesLogKeeper.closeLogFiles();
             Hermes.hermes.killAllResources();
+            System.exit(0);
         } catch (IOException ex) {
             Logger.getLogger(FileRetriever.class.getName()).log(Level.SEVERE, null, ex);
         } catch (TaskExecFailException ex) {

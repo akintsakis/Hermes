@@ -19,13 +19,18 @@
 package Hermes;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class DataFile {
+    
+    
 
     public static ExecutionSite initResourceNode = new ExecutionSite("localhost", "", "");
-    public static ArrayList<DataFile> allDataFiles = new ArrayList<DataFile>();
+    public static Map<String, DataFile> allDataFiles = new HashMap<String, DataFile>();
+    //public static ArrayList<DataFile> allDataFiles = new ArrayList<DataFile>();
+    
     public static int dataFileIdCounter = 0;
     public static String currentFolder;
     int id;
@@ -39,11 +44,13 @@ public class DataFile {
     boolean isDir = true;
     Component createdByComponent;
 
-    double realFileSizeInB;
-    double realFileSizeCustom;
+    //double realFileSizeInB;
+    //double realFileSizeCustom;
     Map<ExecutionSite, String> pathInResource = new ConcurrentHashMap<ExecutionSite, String>();
     Map<ExecutionSite, Lock> resourceLocks = new ConcurrentHashMap<ExecutionSite, Lock>();
     String pathOnResourceAndComp;
+    Map<String, String> metrics = new HashMap<String, String>();
+    public static final String fileSizeKey = "sizeInBytes";
 
     DataFile(String fileName, String type, boolean iSinitialInput, boolean isFinalOutput, boolean isDir) {
         this.id = dataFileIdCounter++;
@@ -62,7 +69,7 @@ public class DataFile {
             Lock resourceLock = new Lock();
             resourceLocks.put(resource, resourceLock);
         }
-        allDataFiles.add(this);
+        allDataFiles.put(String.valueOf(id), this);
     }
 
     public void setFilePathForComponentAndResource(ExecutionSite r, Component c) {

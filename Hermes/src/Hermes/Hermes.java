@@ -29,9 +29,9 @@ import java.net.Socket;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.CyclicBarrier;
 import net.neoremind.sshxcute.exception.TaskExecFailException;
-
 
 public class Hermes {
 
@@ -102,27 +102,29 @@ public class Hermes {
     private void transferInitialInputsToDefaultResource() throws IOException {
         //System.out.println("Transfering initial inputs to default container... ");
         if (ExecutionSite.defaultResourceNode.runsOnMaster) {
-            for (int i = 0; i < DataFile.allDataFiles.size(); i++) {
-                if (DataFile.allDataFiles.get(i).iSinitialInput) {
-                    ExecutionSite.defaultResourceNode.executeCommand("docker exec hermes_workflow_run mkdir -p /home/" + ExecutionSite.defaultResourceNode.containerUsername + "/" + DataFile.currentFolder + "/initialInputs", false, true);
-                    String extractName = (new File(DataFile.allDataFiles.get(i).pathInResource.get(DataFile.initResourceNode))).getName();
-                    ExecutionSite.defaultResourceNode.executeCommand("docker cp " + DataFile.allDataFiles.get(i).pathInResource.get(DataFile.initResourceNode) + " hermes_workflow_run:/home/" + ExecutionSite.defaultResourceNode.containerUsername + "/" + DataFile.currentFolder + "/initialInputs/", false, true);
 
-                    DataFile.allDataFiles.get(i).pathInResource.put(ExecutionSite.defaultResourceNode, "/home/" + ExecutionSite.defaultResourceNode.containerUsername + "/" + DataFile.currentFolder + "/initialInputs/" + extractName);
-                    DataFile.allDataFiles.get(i).pathInResource.remove(DataFile.initResourceNode);
+            for (Map.Entry<String, DataFile> entry : DataFile.allDataFiles.entrySet()) {
+                DataFile dataFile = entry.getValue();
+                if (dataFile.iSinitialInput) {
+                    ExecutionSite.defaultResourceNode.executeCommand("docker exec hermes_workflow_run mkdir -p /home/" + ExecutionSite.defaultResourceNode.containerUsername + "/" + DataFile.currentFolder + "/initialInputs", false, true);
+                    String extractName = (new File(dataFile.pathInResource.get(DataFile.initResourceNode))).getName();
+                    ExecutionSite.defaultResourceNode.executeCommand("docker cp " + dataFile.pathInResource.get(DataFile.initResourceNode) + " hermes_workflow_run:/home/" + ExecutionSite.defaultResourceNode.containerUsername + "/" + DataFile.currentFolder + "/initialInputs/", false, true);
+
+                    dataFile.pathInResource.put(ExecutionSite.defaultResourceNode, "/home/" + ExecutionSite.defaultResourceNode.containerUsername + "/" + DataFile.currentFolder + "/initialInputs/" + extractName);
+                    dataFile.pathInResource.remove(DataFile.initResourceNode);
                 }
             }
-
         } else {
 
-            for (int i = 0; i < DataFile.allDataFiles.size(); i++) {
-                if (DataFile.allDataFiles.get(i).iSinitialInput) {
+            for (Map.Entry<String, DataFile> entry : DataFile.allDataFiles.entrySet()) {
+                DataFile dataFile = entry.getValue();
+                if (dataFile.iSinitialInput) {
                     ExecutionSite.defaultResourceNode.executeCommand("docker exec hermes_workflow_run mkdir -p /home/" + ExecutionSite.defaultResourceNode.containerUsername + "/" + DataFile.currentFolder + "/initialInputs", false, true);
-                    ExecutionSite.defaultResourceNode.copyFile(DataFile.allDataFiles.get(i).pathInResource.get(DataFile.initResourceNode), ExecutionSite.defaultResourceNode.dockerBuildFolder);
-                    String extractName = (new File(DataFile.allDataFiles.get(i).pathInResource.get(DataFile.initResourceNode))).getName();
+                    ExecutionSite.defaultResourceNode.copyFile(dataFile.pathInResource.get(DataFile.initResourceNode), ExecutionSite.defaultResourceNode.dockerBuildFolder);
+                    String extractName = (new File(dataFile.pathInResource.get(DataFile.initResourceNode))).getName();
                     ExecutionSite.defaultResourceNode.executeCommand("docker cp " + ExecutionSite.defaultResourceNode.dockerBuildFolder + "/" + extractName + " hermes_workflow_run:/home/" + ExecutionSite.defaultResourceNode.containerUsername + "/" + DataFile.currentFolder + "/initialInputs/", false, true);
-                    DataFile.allDataFiles.get(i).pathInResource.put(ExecutionSite.defaultResourceNode, "/home/" + ExecutionSite.defaultResourceNode.containerUsername + "/" + DataFile.currentFolder + "/initialInputs/" + extractName);
-                    DataFile.allDataFiles.get(i).pathInResource.remove(DataFile.initResourceNode);
+                    dataFile.pathInResource.put(ExecutionSite.defaultResourceNode, "/home/" + ExecutionSite.defaultResourceNode.containerUsername + "/" + DataFile.currentFolder + "/initialInputs/" + extractName);
+                    dataFile.pathInResource.remove(DataFile.initResourceNode);
                 }
             }
         }
@@ -149,16 +151,14 @@ public class Hermes {
             }
         }
         if (!new File(workflowGraphMlInput).exists()) {
-            System.out.println("Workflow description file does NOT exist: "+workflowGraphMlInput);
+            System.out.println("Workflow description file does NOT exist: " + workflowGraphMlInput);
             System.exit(1);
         }
 
         if (!new File(initialInputsFolderPathOnMaster).exists()) {
-            System.out.println("Inputs folder does NOT exist: "+initialInputsFolderPathOnMaster);
+            System.out.println("Inputs folder does NOT exist: " + initialInputsFolderPathOnMaster);
             System.exit(1);
         }
-
-
 
         HermesLogKeeper.initializeLogs(Configuration.globalConfig.locationOfHermesRootFolder, Configuration.globalConfig.currentDate);
         DataFile.currentFolder = Configuration.globalConfig.currentDate + "_toBeDeleted";
@@ -168,20 +168,21 @@ public class Hermes {
 
     public static void main(String[] args) throws IOException, InterruptedException, Exception {
 
+        //Parsers.createDatasets("/home/thanos/Dropbox/Code/Hermes/Hermes/ComponentExecutionLogs/blastProteinDistributed", "blastProteinDistributed", "/home/thanos/Dropbox/Code/Hermes/Hermes/Models/Datasets");
+        //System.exit(0);
+
         hermes = new Hermes(args);
 
         hermes.loadComponentList(Configuration.globalConfig.componentDescriptions);
 
-        //Parsers.createDatasets("/home/thanos/Dropbox/Code/Hermes/Hermes/ComponentExecutionLogs/ComponentExecutionLogsMay26/blastProteinDistributed","blastProteinDistributed", "/home/thanos/Dropbox/Code/Hermes/Hermes/Models/Datasets");
-        //System.exit(0);
         System.out.println("Initializing sites...");
         hermes.buildResources();
         System.out.println("Site initialization complete!");
-        
+
         System.out.println("Initializing Incoming Communications Thread...");
         hermes.comms = new IncomingCommunicatorThread();
         hermes.comms.start();
-        
+
         System.out.println("Initializing File Retriever Thread...");
         hermes.fileRetriever = new FileRetriever();
         hermes.fileRetriever.start();
@@ -196,10 +197,15 @@ public class Hermes {
         System.out.println("Transferring initial inputs to default container...");
         hermes.transferInitialInputsToDefaultResource();
 
+        System.out.println("Launching Health thread");
+        HealthThread health = new HealthThread(hermes.resources, hermes.comms.executingNow);
+        health.start();
+
         System.out.println("Workflow execution commences..");
         hermes.workflow.executeWorkflow();
         hermes.killLocalThreads();
         System.out.println("exiting...");
+
     }
 
     private void killLocalThreads() {

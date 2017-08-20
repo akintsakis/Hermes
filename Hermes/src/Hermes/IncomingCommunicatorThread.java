@@ -31,6 +31,7 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -62,6 +63,12 @@ public class IncomingCommunicatorThread extends Thread {
             HermesLogKeeper.logReceiver("+++RECEIVING+++ ::: " + currentNodeExecutionThread.node.component.executedOnResource.name + "  | component " + currentNodeExecutionThread.node.component.name + "| status " + jobResponse.success + " |error: " + potentialError);
             HermesLogKeeper.logReceiver("FULL reply: " + response);
 
+            if (jobResponse.jobOutputFileMetrics != null && !jobResponse.jobOutputFileMetrics.isEmpty()) {
+                for (Map.Entry<String, Map<String, String>> entry : jobResponse.jobOutputFileMetrics.entrySet()) {
+                    DataFile.allDataFiles.get(entry.getKey()).metrics.putAll(entry.getValue());
+                }
+            }
+
             if (jobResponse.jobRequest.monitor) {
                 //ArrayList<JSONObject> jsonLog = (JSONArray) jsonResponse.get("runTimeLog");
                 //JSONObject entry = jsonLog.get(0);
@@ -81,10 +88,10 @@ public class IncomingCommunicatorThread extends Thread {
                     //JSONObject entry = jsonLog.get(0);
                     TreeNode node = Hermes.hermes.workflow.allNodes.get(Integer.valueOf(jobResponse.jobRequest.NodeID));
 
-                    node.component.setOutputsRealFileSizesInB(jobResponse.outputDataFileSizesBytes);
-                    if (jobResponse.outputDataFileSizesCustom != null && Configuration.globalConfig.inputOutputFileAssessment) {
-                        node.component.setOutputsRealFileSizesCustom(jobResponse.outputDataFileSizesCustom);
-                    }
+//                    node.component.setOutputsRealFileSizesInB(jobResponse.outputDataFileSizesBytes);
+//                    if (jobResponse.outputDataFileSizesCustom != null && Configuration.globalConfig.inputOutputFileAssessment) {
+//                        node.component.setOutputsRealFileSizesCustom(jobResponse.outputDataFileSizesCustom);
+//                    }
                 }
             }
 
@@ -97,6 +104,7 @@ public class IncomingCommunicatorThread extends Thread {
                     currentNodeExecutionThread.node.component.extraRuns--;
                     currentNodeExecutionThread.node.component.executionCompleted = false;
                     currentNodeExecutionThread.node.component.lastExecutionFailed = true;
+
                 } else {
                     currentNodeExecutionThread.node.component.lastExecutionFailed = false;
                     currentNodeExecutionThread.node.component.executionCompleted = true;

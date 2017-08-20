@@ -132,11 +132,12 @@ public class Component {
         double dataToBeTransferred = 0.0;
 
         for (DataFile file : inputDataFiles) {
-            if (file.realFileSizeInB == 0.0) {
+            //System.out.println(file.metrics.get(DataFile.fileSizeKey));
+            if (Long.parseLong(file.metrics.get(DataFile.fileSizeKey)) == 0.0) {
                 System.out.println("Warning: File has no size: " + file.id + file.fileName);
             }
             if (!file.pathInResource.containsKey(site)) {
-                dataToBeTransferred = dataToBeTransferred + file.realFileSizeInB;
+                dataToBeTransferred = dataToBeTransferred + Long.parseLong(file.metrics.get(DataFile.fileSizeKey));
             }
         }
         return dataToBeTransferred;
@@ -146,11 +147,11 @@ public class Component {
         double burden = 0.0;
         if (Configuration.globalConfig.inputOutputFileAssessment) {
             for (DataFile file : inputDataFiles) {
-                burden = burden + file.realFileSizeCustom;
+                burden = burden + Double.parseDouble(file.metrics.get(DataFile.fileSizeKey));
             }
         } else {
             for (DataFile file : inputDataFiles) {
-                burden = burden + file.realFileSizeInB;
+                burden = burden + Double.parseDouble(file.metrics.get(DataFile.fileSizeKey));
             }
         }
         return burden;
@@ -231,33 +232,33 @@ public class Component {
     
     
 
-    public void setOutputsRealFileSizesInB(String input) {
-        String[] tmp = input.split(" ");
-        for (int i = 0; i < outputDataFiles.size(); i++) {
-            outputDataFiles.get(i).realFileSizeInB = Double.valueOf(tmp[i]);
-        }
-    }
-
-    public void setInputsRealFileSizesInB(String input) {
-        String[] tmp = input.split(" ");
-        for (int i = 0; i < inputDataFiles.size(); i++) {
-            inputDataFiles.get(i).realFileSizeInB = Double.valueOf(tmp[i]);
-        }
-    }
-
-    public void setOutputsRealFileSizesCustom(String input) {
-        String[] tmp = input.split(" ");
-        for (int i = 0; i < outputDataFiles.size(); i++) {
-            outputDataFiles.get(i).realFileSizeCustom = Double.valueOf(tmp[i]);
-        }
-    }
-
-    public void setInputsRealFileSizesCustom(String input) {
-        String[] tmp = input.split(" ");
-        for (int i = 0; i < inputDataFiles.size(); i++) {
-            inputDataFiles.get(i).realFileSizeCustom = Double.valueOf(tmp[i]);
-        }
-    }
+//    public void setOutputsRealFileSizesInB(String input) {
+//        String[] tmp = input.split(" ");
+//        for (int i = 0; i < outputDataFiles.size(); i++) {
+//            outputDataFiles.get(i).realFileSizeInB = Double.valueOf(tmp[i]);
+//        }
+//    }
+//
+//    public void setInputsRealFileSizesInB(String input) {
+//        String[] tmp = input.split(" ");
+//        for (int i = 0; i < inputDataFiles.size(); i++) {
+//            inputDataFiles.get(i).realFileSizeInB = Double.valueOf(tmp[i]);
+//        }
+//    }
+//
+//    public void setOutputsRealFileSizesCustom(String input) {
+//        String[] tmp = input.split(" ");
+//        for (int i = 0; i < outputDataFiles.size(); i++) {
+//            outputDataFiles.get(i).realFileSizeCustom = Double.valueOf(tmp[i]);
+//        }
+//    }
+//
+//    public void setInputsRealFileSizesCustom(String input) {
+//        String[] tmp = input.split(" ");
+//        for (int i = 0; i < inputDataFiles.size(); i++) {
+//            inputDataFiles.get(i).realFileSizeCustom = Double.valueOf(tmp[i]);
+//        }
+//    }
 
 
 

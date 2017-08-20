@@ -16,6 +16,8 @@
 package Hermes;
 
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  *
@@ -23,28 +25,29 @@ import java.util.Date;
  */
 public class JobResponse {
 
-   public JobRequest jobRequest;
-   public boolean success;
-   public String error;
-   public String mscError;
+    public JobRequest jobRequest;
+    public boolean success;
+    public String error;
+    public String mscError;
     //String date;
-   public long runtime;
-   public int wasRetriedTimes;
-   public boolean timeOutKilled = false;
-   public boolean outOfMemoryKilled = false;
+    public long runtime;
+    public int wasRetriedTimes;
+    public boolean timeOutKilled = false;
+    public boolean outOfMemoryKilled = false;
 
-   public String totalReads;
-   public String totalWrites;
-   public String topIntervalTimeInSeconds;
-   public String averageCpuUsage;
-   public String averageMemUsage;
-   public String maxCpuUsage;
-   public String maxMemoryUsage;
+    public String totalReads;
+    public String totalWrites;
+    public String topIntervalTimeInSeconds;
+    public String averageCpuUsage;
+    public String averageMemUsage;
+    public String maxCpuUsage;
+    public String maxMemoryUsage;
 
-   public Date dateCompleted;
-   public Date dateStarted;
+    public Date dateCompleted;
+    public Date dateStarted;
 
-    public String outputDataFileSizesBytes;
-    public String outputDataFileSizesCustom;
-
+    //public String outputDataFileSizesBytes;
+    //public String outputDataFileSizesCustom;
+    
+    public Map<String, Map<String, String>> jobOutputFileMetrics = new HashMap<String, Map<String, String>>();
 }

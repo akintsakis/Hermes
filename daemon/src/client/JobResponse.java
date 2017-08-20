@@ -16,6 +16,8 @@
 package client;
 
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  *
@@ -45,7 +47,9 @@ public class JobResponse {
     Date dateCompleted;
     Date dateStarted;
 
-    public String outputDataFileSizesBytes;
-    public String outputDataFileSizesCustom;
+    //public String outputDataFileSizesBytes;
+    //public String outputDataFileSizesCustom;
+    
+    public Map<String, Map<String,String>> jobOutputFileMetrics = new HashMap<String, Map<String,String>>();
 
 }

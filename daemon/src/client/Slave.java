@@ -35,6 +35,8 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -106,7 +108,47 @@ public class Slave extends Thread {
         StreamGobbler outputGobbler;
         String error = "originalNone";
         int maxStrangeRetries = 5;
+        int maxFileTransferRetries = 8;
         int exitValue = 1;
+        if(jobRequest.jobIsFileTransfer) {
+            error = "file_transfer_failed";
+            try {
+                while(maxFileTransferRetries > 0) {
+                p = Runtime.getRuntime().exec(cmd);
+                errorGobbler = new StreamGobbler(p.getErrorStream(), "ERROR");
+                outputGobbler = new StreamGobbler(p.getInputStream(), "OUTPUT");
+                errorGobbler.start();
+                outputGobbler.start();
+                
+                    
+                exitValue = p.waitFor();
+                    
+                exitValueString = String.valueOf(exitValue);
+                p.destroy();
+                
+                File f = new File(jobRequest.receivingFile);
+                
+                if(f.exists()) {
+                    error="";
+                    break;
+                } else {
+                    System.out.println("File transfer failed, receiving file does not exist");
+                    maxFileTransferRetries--;
+                }
+                
+                
+                }
+                
+            } catch (IOException ex) {
+                Logger.getLogger(Slave.class.getName()).log(Level.SEVERE, null, ex);
+            } catch (InterruptedException ex) {
+                        Logger.getLogger(Slave.class.getName()).log(Level.SEVERE, null, ex);
+                    }
+                
+            
+        } else {
+            
+        
         try {
             while (maxStrangeRetries > 0) {
                 p = Runtime.getRuntime().exec(cmd);
@@ -124,7 +166,7 @@ public class Slave extends Thread {
                 ltimeout = ltimeout * 1000;
                 long startTime = System.currentTimeMillis();
                 //System.out.println("timeout v is : "+ltimeout);
-                while (p.isAlive()) {
+                while (p.isAlive() && jobRequest.monitor) {
                     
                     long elapsed = System.currentTimeMillis() - startTime;
                     System.out.println("elapsed: " + elapsed);
@@ -162,22 +204,7 @@ public class Slave extends Thread {
                         sleep(2000);
                     }
                 }
-                
-//                if (timeOut != 0) {
-//                    if (!p.waitFor(timeOut, TimeUnit.SECONDS)) {
-//                        p.destroy();
-//                        sleep(1000);
-//                        if (p.isAlive()) {
-//                            p.destroyForcibly();
-//                        }
-//
-//                        wr1.write("timeout reached at " + timeOut);
-//                        wr1.newLine();
-//                        wr1.flush();
-//                        return "timeout";
-//                    }
-//                }
-//
+
                 exitValue = p.waitFor();
                 exitValueString = String.valueOf(exitValue);
                 p.destroy();
@@ -192,7 +219,9 @@ public class Slave extends Thread {
 
                 if (exitValue == 0) {
                     break;
-                } else if (exitValue == 1 && (errorGobbler.output.toString().equals("") || errorGobbler.output.toString().equals(" "))) {
+                }
+                
+                else if (exitValue != 0 && (errorGobbler.output.toString().equals("") || errorGobbler.output.toString().equals(" "))) {
                     maxStrangeRetries = maxStrangeRetries - 1;
                     wr1.write("process crashed with empty error log.. retring attempt: " + maxStrangeRetries);
                     wr1.newLine();
@@ -208,7 +237,7 @@ public class Slave extends Thread {
         } catch (Exception e) {
             e.printStackTrace();
             System.out.println("exception " + e);
-        }
+        }}
         return error;
     }
 
@@ -265,18 +294,20 @@ public class Slave extends Thread {
 
     public void prepareResponse(Boolean success, String error, long runTime) throws IOException {
         //JSONObject obj = new JSONObject();
-        ArrayList<String> outputSizesInB = new ArrayList<String>();
+        //ArrayList<String> outputSizesInB = new ArrayList<String>();
         //JSONObject resourceLogs = new JSONObject();
-        if (runTime > 2000) {
-            buildProcessLogsToJson(runTime);
-        }
+        
+        
+        
+        
+        
 
-        if (!jobRequest.outputDataFileIds.isEmpty()) {
-            outputSizesInB = assignOutputFileSizes();
-        } else {
-            outputSizesInB.add("0");
-            outputSizesInB.add("0");
-        }
+//        if (!jobRequest.outputDataFileIds.isEmpty()) {
+//            outputSizesInB = assignOutputFileSizes();
+//        } else {
+//            outputSizesInB.add("0");
+//            outputSizesInB.add("0");
+//        }
 //        if (incomingJSON.containsKey(("InputDataFiles"))) {
 //            obj.put("InputDataFiles", incomingJSON.get("InputDataFiles"));
 //        }
@@ -286,6 +317,7 @@ public class Slave extends Thread {
 //        }
         if (success) {
             jobResponse.success = true;
+            assignOutputFileSizes();
             //obj.put("success", true);
         } else {
             jobResponse.success = false;
@@ -296,10 +328,14 @@ public class Slave extends Thread {
 
         //success &&  removed run only if success
         if (jobRequest.monitor) {
+            if (runTime > 2000) {
+            buildProcessLogsToJson(runTime);
+        }
+            
             //prepareRuntimeLog(obj, incomingJSON, outputSizesInB, runTime, resourceLogs);
 
-            jobResponse.outputDataFileSizesBytes = outputSizesInB.get(0);
-            jobResponse.outputDataFileSizesCustom = outputSizesInB.get(1);
+//            jobResponse.outputDataFileSizesBytes = outputSizesInB.get(0);
+//            jobResponse.outputDataFileSizesCustom = outputSizesInB.get(1);
             jobResponse.runtime = runTime;
 //            if (runTime > 2000) {
 //                
@@ -319,39 +355,46 @@ public class Slave extends Thread {
         //return obj;
     }
 
-    public ArrayList<String> assignOutputFileSizes() throws IOException {
+    public void assignOutputFileSizes() throws IOException {
         //JSONArray msg = (JSONArray) incomingJSON.get("OutputDataFiles");
-        ArrayList<String> ret = new ArrayList<String>();
-        StringBuilder bytesSB = new StringBuilder();
-        StringBuilder customSB = new StringBuilder();
+//        ArrayList<String> ret = new ArrayList<String>();
+//        StringBuilder bytesSB = new StringBuilder();
+//        StringBuilder customSB = new StringBuilder();
 
         //ArrayList<JSONObject> outputDataFiles = msg;
+        jobResponse.jobOutputFileMetrics = new HashMap<String, Map<String,String>>();
         for (int i = 0; i < jobRequest.outputDataFileIds.size(); i++) {
+           
+            Map<String, String> metrics = jobResponse.jobOutputFileMetrics.get(String.valueOf(jobRequest.outputDataFileIds.get(i)));
+            metrics = new HashMap<String, String>();
+            
+            DataFileEvaluationFunctions.selector(jobRequest.outputDataFilePaths.get(i), metrics, jobRequest.inputOutputFileAssessment, jobRequest);
+            jobResponse.jobOutputFileMetrics.put(String.valueOf(jobRequest.outputDataFileIds.get(i)), metrics);
+                    
+             
             //JSONObject dataFile = outputDataFiles.get(i);
-            File currentOutput = new File(jobRequest.outputDataFilePaths.get(i));
-            String fileSize;
-
-            if (!currentOutput.exists()) {
-                Path folder = currentOutput.getParentFile().toPath();
-                fileSize = String.valueOf(Files.walk(folder)
-                        .filter(p -> p.toFile().isFile())
-                        .mapToLong(p -> p.toFile().length())
-                        .sum());
-                bytesSB.append(fileSize).append(" ");
-            } else {
-                fileSize = String.valueOf(currentOutput.length());
-                bytesSB.append(fileSize).append(" ");
-            }
-
-            if (jobRequest.inputOutputFileAssessment) {
-                customSB.append(DataFileEvaluationFunctions.selector(jobRequest.outputDataFilePaths.get(i), jobRequest, jobResponse)).append(" ");
-            }
+//            File currentOutput = new File(jobRequest.outputDataFilePaths.get(i));
+//            String fileSize;
+//
+//            if (!currentOutput.exists()) {
+//                Path folder = currentOutput.getParentFile().toPath();
+//                fileSize = String.valueOf(Files.walk(folder)
+//                        .filter(p -> p.toFile().isFile())
+//                        .mapToLong(p -> p.toFile().length())
+//                        .sum());
+//                bytesSB.append(fileSize).append(" ");
+//            } else {
+//                fileSize = String.valueOf(currentOutput.length());
+//                bytesSB.append(fileSize).append(" ");
+//            }
+//
+//            if (jobRequest.inputOutputFileAssessment) {
+                //customSB.append(DataFileEvaluationFunctions.selector(jobRequest.outputDataFilePaths.get(i), jobRequest, jobResponse)).append(" ");
+           // }
             //dataFile.put("sizeInBytes", fileSize);
 
         }
-        ret.add(bytesSB.toString());
-        ret.add(customSB.toString());
-        return ret;
+
     }
 
     public void run() {
@@ -525,6 +568,7 @@ public class Slave extends Thread {
                 System.out.println("sending :" + "SUCCESS @ " + reply);
 
                 Client.talker(reply, masterAddress, masterJobPort);
+                System.gc();
             }
 
         } catch (IOException ex) {

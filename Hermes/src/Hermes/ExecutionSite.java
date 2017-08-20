@@ -34,6 +34,7 @@ import ch.ethz.ssh2.Session;
 import ch.ethz.ssh2.StreamGobbler;
 import ch.ethz.ssh2.ChannelCondition;
 import ch.ethz.ssh2.LocalPortForwarder;
+import com.google.gson.Gson;
 import java.io.DataOutputStream;
 import java.io.File;
 import java.io.InputStream;
@@ -48,32 +49,32 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public class ExecutionSite extends Thread implements Comparable<ExecutionSite> {
-
+    
     private static Lock portForwardsLock = new Lock();
     private Integer sitePortsStartFrom;
-
+    
     public ArrayList<Component> componentsCurrentlyExecutingOnSites = new ArrayList<Component>();
     public static ExecutionSite defaultResourceNode;
     public final String name;
     public final int id;
     double ramSizeInMB;
-
+    
     public int siteThreadCount;
     public int availableSlots;
     public Double cpuMultithreadedScore;
     public Double cpuSingleThreadedScore;
-
+    
     final private String masterIpAddress;
     final private String ipAddress;
     //final private String password;
     String pathToKey;
-
+    
     String containerUsername; //used for paths
     String containerUserHomePath;
-
+    
     String sshHostUsername;
     String sshHostPort;
-
+    
     String userHostHomePath;
     String tunnelIP = "127.0.0.1";
     String forwardedFileTransfersHostname = "127.0.0.1";
@@ -91,7 +92,7 @@ public class ExecutionSite extends Thread implements Comparable<ExecutionSite> {
     Integer siteContainerSSHListeningPort = -1;
     Integer clientListeningPort = -1;
     static Integer masterPortForwardsToSitesStartFrom;
-
+    
     public static HashMap<String, String> portMappings = new HashMap<String, String>();
     static HashMap<Integer, ExecutionSite> resourceNodesByForwardedPortForComms = new HashMap<Integer, ExecutionSite>();
     String dockerBuildFolder;
@@ -99,10 +100,10 @@ public class ExecutionSite extends Thread implements Comparable<ExecutionSite> {
     //portForwards
     private LocalPortForwarder lpf2;
     private LocalPortForwarder lpf1;
-
+    
     private final CyclicBarrier cyclicBarrier;
     private ArrayList<ExecutionSite> resources;
-
+    
     ExecutionSite(String ipAddress, String password, String username) {
         sitePortsStartFrom = Configuration.globalConfig.siteTunnelPortsStartFrom;
         this.ipAddress = ipAddress;
@@ -122,18 +123,18 @@ public class ExecutionSite extends Thread implements Comparable<ExecutionSite> {
         conn = null;
         cpuMultithreadedScore = 0.0;
     }
-
+    
     ExecutionSite(Integer id, String resourceConfigFile, ArrayList<ExecutionSite> resources, CyclicBarrier cyclicBarrier) throws IOException, TaskExecFailException, Exception {
         this.id = id;
         sitePortsStartFrom = Configuration.globalConfig.siteTunnelPortsStartFrom;
         this.cyclicBarrier = cyclicBarrier;
         this.resources = resources;
-
+        
         FileInputStream generalConfigurationFile = new FileInputStream(resourceConfigFile);
         Properties siteConfiguration = new Properties();
         siteConfiguration.load(generalConfigurationFile);
         generalConfigurationFile.close();
-
+        
         name = siteConfiguration.getProperty("name");
         if (name.equals("")) {
             System.out.println("Fatal error, name not provided in .site file... exiting...");
@@ -146,7 +147,7 @@ public class ExecutionSite extends Thread implements Comparable<ExecutionSite> {
             System.out.println("Fatal error, IP address not provided in .site file... exiting...");
             System.exit(1);
         }
-
+        
         if (siteConfiguration.getProperty("ipAddress").equals(Configuration.globalConfig.globalMasterIpAddress) || siteConfiguration.getProperty("ipAddress").equals("localhost")) {
             masterIpAddress = "localhost";
             ipAddress = Configuration.globalConfig.globalMasterIpAddress;
@@ -156,7 +157,7 @@ public class ExecutionSite extends Thread implements Comparable<ExecutionSite> {
             ipAddress = siteConfiguration.getProperty("ipAddress");
             masterIpAddress = Configuration.globalConfig.globalMasterIpAddress;
         }
-
+        
         sshHostUsername = siteConfiguration.getProperty("username");
         if (sshHostUsername.equals("")) {
             System.out.println("Fatal error, username not provided in .site file... exiting...");
@@ -170,11 +171,11 @@ public class ExecutionSite extends Thread implements Comparable<ExecutionSite> {
             System.exit(1);
         }
         pathToKey = Configuration.globalConfig.sshKeyToAccessSites;
-
+        
         System.out.println("###Initializing Node " + this.id + " " + this.name);
         establishSSHConnection();
     }
-
+    
     void establishSSHConnection() {
         try {
             if (lpf1 != null) {
@@ -186,16 +187,16 @@ public class ExecutionSite extends Thread implements Comparable<ExecutionSite> {
             if (conn != null) {
                 conn.close();
             }
-
+            
             if (runsOnMaster) {
                 conn = new Connection("localhost", Integer.valueOf(sshHostPort));
             } else {
                 conn = new Connection(ipAddress, Integer.valueOf(sshHostPort));
             }
-
+            
             System.out.println("Connecting to :" + ipAddress + " port: " + sshHostPort);
             conn.connect();
-
+            
             boolean isAuthenticated = false;
             //if (Configuration.globalConfig.useKeyNotPasswordForSSHtoSites) {
             File keyfile = new File(Configuration.globalConfig.sshKeyToAccessSites);
@@ -218,7 +219,7 @@ public class ExecutionSite extends Thread implements Comparable<ExecutionSite> {
             if (clientListeningPort < 0) {
                 clientListeningPort = getNextFreePortOnSiteStartingFrom(conn);
             }
-
+            
             if (!masterIpAddress.equals("localhost")) {
                 setLPFTransfersSSH();
                 setLPFComms();
@@ -228,13 +229,13 @@ public class ExecutionSite extends Thread implements Comparable<ExecutionSite> {
                 //System.out.println("!!!!!!!!!" + name + " masterTunnelComms " + masterTunnelPortCommunications);
                 //System.out.println("!!!!!!!!!" + name + " tunnelPortSSHContainers " + tunnelPortSSHContainers);
             }
-
+            
         } catch (IOException e) {
             System.out.println(e);
         }
-
+        
     }
-
+    
     public Integer getNextFreePortOnSiteStartingFrom(Connection conn) throws IOException {
         Integer startingFromPort = sitePortsStartFrom;
         //System.out.println(name+" starting port "+startingFromPort);
@@ -258,7 +259,7 @@ public class ExecutionSite extends Thread implements Comparable<ExecutionSite> {
         sitePortsStartFrom = freePort + 1;
         return freePort;
     }
-
+    
     public void setSiteTunnels(ArrayList<ExecutionSite> resources) throws IOException {
         try {
             System.out.println("Setting up ssh tunnels on: " + name);
@@ -286,7 +287,7 @@ public class ExecutionSite extends Thread implements Comparable<ExecutionSite> {
             Logger.getLogger(ExecutionSite.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
-
+    
     public static void createDockerKeys() throws JSchException, IOException {
         JSch jsch = new JSch();
         KeyPair kpair = KeyPair.genKeyPair(jsch, KeyPair.RSA);
@@ -294,14 +295,14 @@ public class ExecutionSite extends Thread implements Comparable<ExecutionSite> {
         kpair.writePublicKey(Configuration.globalConfig.workflowTemporarySshKeyToAccessContainers + ".pub", "");
         kpair.dispose();
     }
-
+    
     public static void deleteDockerKey() {
         File f = new File(Configuration.globalConfig.workflowTemporarySshKeyToAccessContainers);
         f.delete();
         f = new File(Configuration.globalConfig.workflowTemporarySshKeyToAccessContainers + ".pub");
         f.delete();
     }
-
+    
     public void run() {
         try {
             initializeResource();
@@ -311,12 +312,12 @@ public class ExecutionSite extends Thread implements Comparable<ExecutionSite> {
             cyclicBarrier.await();
             sleep(500);
             launchDaemonOnSite();
-
+            
         } catch (Exception ex) {
             Logger.getLogger(ExecutionSite.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
-
+    
     public void initializeResource() throws TaskExecFailException, Exception {
 
         /* kill existing hermes container if exists */
@@ -348,11 +349,11 @@ public class ExecutionSite extends Thread implements Comparable<ExecutionSite> {
         executeCommand("cd " + dockerBuildFolder + " && docker build -t " + Configuration.globalConfig.hermesWorkflowImageName + " --rm=true .", true, false);
         executeCommand("rm " + dockerBuildFolder + "/identityToHosts", false, false);
         executeCommand("docker run --net=\"host\" -dti --name " + Configuration.globalConfig.hermesWorkflowContainerName + " " + Configuration.globalConfig.hermesWorkflowImageName, true, false);
-
+        
         if (Configuration.globalConfig.cloneGitCodeRepositoryOnEachRun) {
             cloneGitCodeRepo();
         }
-
+        
         executeCommand("docker exec " + Configuration.globalConfig.hermesWorkflowContainerName + " find /home/user/Hermes/Components -type f -exec chmod +x {} +", true, false);
         //System.out.println("docker exec " + Configuration.hermesWorkflowContainerName + " cp /home/user/" + DataFile.currentFolder + "/daemon/ComponentMonitoring/plist /home/user/plist");
         executeCommand("docker exec " + Configuration.globalConfig.hermesWorkflowContainerName + " mkdir /home/user/" + DataFile.currentFolder, true, false);
@@ -361,15 +362,15 @@ public class ExecutionSite extends Thread implements Comparable<ExecutionSite> {
         executeCommand("docker exec " + Configuration.globalConfig.hermesWorkflowContainerName + " cp /home/user/" + DataFile.currentFolder + "/daemon/ComponentMonitoring/plist /home/user/plist", true, false);
         executeCommand("docker exec " + Configuration.globalConfig.hermesWorkflowContainerName + " screen -S dstatlogger -d -m dstat -T -t -c -l -m -d -n -p -r -i -g -s -y --float --output /home/user/" + DataFile.currentFolder + "/dstatlog", true, false);
         executeCommand("docker exec " + Configuration.globalConfig.hermesWorkflowContainerName + " bash -c  \"echo $(date +%s) > /home/user/" + DataFile.currentFolder + "/topInitTimestamp\"", true, false);
-
+        
         siteThreadCount = autoDetectThreadCountIfNotSet(conn);
         ramSizeInMB = autoDetectMaxMemoryIfNotSet(conn);
         cpuMultithreadedScore = autoDetectCpuMultithreadedPerformance(conn);
         cpuSingleThreadedScore = autoDetectCpuSinglethreadedPerformance(conn);
-
+        
         availableSlots = siteThreadCount;
     }
-
+    
     public void setLPFTransfersSSH() throws IOException {
         tunnelPortSSHContainers = masterPortForwardsToSitesStartFrom;//id+WorkflowOptimizer.globalConfig.masterPortForwardsToSitesStartFrom;//getNextFreePortOnSiteStartingFrom(conn);
         int maxRetries = Configuration.globalConfig.maxPortRetries;
@@ -388,7 +389,7 @@ public class ExecutionSite extends Thread implements Comparable<ExecutionSite> {
         }
         //System.out.println(name + " lpf2 established on: " + tunnelPortSSHContainers);
     }
-
+    
     public void setLPFComms() throws IOException {
         masterTunnelPortCommunications = masterPortForwardsToSitesStartFrom;//id+ WorkflowOptimizer.globalConfig.masterPortForwardsToSitesStartFrom;//getNextFreePortOnSiteStartingFrom(conn);
         int maxRetries = Configuration.globalConfig.maxPortRetries;
@@ -407,7 +408,7 @@ public class ExecutionSite extends Thread implements Comparable<ExecutionSite> {
         //System.out.println(name + " lpf1 established on: " + masterTunnelPortCommunications);
         resourceNodesByForwardedPortForComms.put(masterTunnelPortCommunications, this);
     }
-
+    
     public void launchDaemonOnSite() throws IOException {
         String command;
         command = "docker exec " + Configuration.globalConfig.hermesWorkflowContainerName + " screen -S clientDaemon -d -m java -jar " + "/home/user/" + DataFile.currentFolder + "/daemon/Client.jar " + "127.0.0.1" + " " + sshTunnelForwardedContainersMasterListeningPort + " " + clientListeningPort + " > clientRedirectOut 2>&1";
@@ -417,9 +418,9 @@ public class ExecutionSite extends Thread implements Comparable<ExecutionSite> {
         } catch (InterruptedException ex) {
             Logger.getLogger(ExecutionSite.class.getName()).log(Level.SEVERE, null, ex);
         }
-        executeCommand("docker exec " + Configuration.globalConfig.hermesWorkflowContainerName + " screen -S clientDaemon -X stuff 'java -jar " + "/home/user/" + DataFile.currentFolder + "/daemon/Client.jar " + "127.0.0.1" + " " + sshTunnelForwardedContainersMasterListeningPort + " " + clientListeningPort + " -Xms256m -Xmx1024m > clientRedirectOut 2>&1'`echo -ne '\\015'`", false, false);
+        executeCommand("docker exec " + Configuration.globalConfig.hermesWorkflowContainerName + " screen -S clientDaemon -X stuff 'java -jar " + "/home/user/" + DataFile.currentFolder + "/daemon/Client.jar " + "127.0.0.1" + " " + sshTunnelForwardedContainersMasterListeningPort + " " + clientListeningPort + " -Xmx256m > clientRedirectOut 2>&1'`echo -ne '\\015'`", false, false);
     }
-
+    
     public void shutDownResource() throws TaskExecFailException, IOException {
         try {
             System.out.println("###Shutting Down Site " + this.id + " " + this.name);
@@ -438,7 +439,7 @@ public class ExecutionSite extends Thread implements Comparable<ExecutionSite> {
             Logger.getLogger(ExecutionSite.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
-
+    
     public Integer autoDetectThreadCountIfNotSet(Connection conn) throws IOException {
         Integer siteThreads;
         Session sess = conn.openSession();
@@ -456,7 +457,7 @@ public class ExecutionSite extends Thread implements Comparable<ExecutionSite> {
         sess.close();
         return siteThreads;
     }
-
+    
     public Double autoDetectMaxMemoryIfNotSet(Connection conn) throws IOException {
         Double ramSize;
         Session sess = conn.openSession();
@@ -475,7 +476,7 @@ public class ExecutionSite extends Thread implements Comparable<ExecutionSite> {
         sess.close();
         return ramSize;
     }
-
+    
     private Double autoDetectCpuMultithreadedPerformance(Connection conn) throws IOException {
         Double cpuMultithreadedScore;
         Session sess = conn.openSession();
@@ -488,7 +489,7 @@ public class ExecutionSite extends Thread implements Comparable<ExecutionSite> {
         line = line.substring(0, line.length() - 1);
         cpuMultithreadedScore = Double.valueOf(line);
         cpuMultithreadedScore = 1.0 / cpuMultithreadedScore;
-
+        
         if (cpuMultithreadedScore == 0.1) {
             System.out.println("Fatal error, could not autodetect CPU power on site: " + name + " ...please set manually in .site file");
             System.exit(1);
@@ -499,7 +500,7 @@ public class ExecutionSite extends Thread implements Comparable<ExecutionSite> {
         return cpuMultithreadedScore;
         //return 0.1;
     }
-
+    
     private Double autoDetectCpuSinglethreadedPerformance(Connection conn) throws IOException {
         Double cpuSinglethreadedScore;
         Session sess = conn.openSession();
@@ -512,7 +513,7 @@ public class ExecutionSite extends Thread implements Comparable<ExecutionSite> {
         line = line.substring(0, line.length() - 1);
         cpuSinglethreadedScore = Double.valueOf(line);
         cpuSinglethreadedScore = 1.0 / cpuSinglethreadedScore;
-
+        
         if (cpuSinglethreadedScore == 0.1) {
             System.out.println("Fatal error, could not autodetect CPU power on site: " + name + " ...please set manually in .site file");
             System.exit(1);
@@ -524,7 +525,7 @@ public class ExecutionSite extends Thread implements Comparable<ExecutionSite> {
         //return 0.1;
 
     }
-
+    
     public static void copyDir(Connection conn, String localDirectory, String remoteTargetDirectory, boolean firstTime) throws IOException {
         final String[] fileList = (new File(localDirectory).list());//curDir.list();
         if (firstTime) {
@@ -533,7 +534,7 @@ public class ExecutionSite extends Thread implements Comparable<ExecutionSite> {
             sess.waitForCondition(ChannelCondition.EOF, 0);
             sess.close();
         }
-
+        
         for (String file : fileList) {
             final String fullFileName = localDirectory + "/" + file;
             //System.out.println(fullFileName);
@@ -551,20 +552,20 @@ public class ExecutionSite extends Thread implements Comparable<ExecutionSite> {
             }
         }
     }
-
+    
     public void copyFile(String local, String remote) throws IOException {
         SCPClient scpc = conn.createSCPClient();
         scpc.put(local, remote);
     }
-
+    
     public void cloneGitCodeRepo() throws IOException {
         System.out.println("Site: " + name + " Cloning dependencies repo " + Configuration.globalConfig.gitCodeRepo);
         executeCommand("docker exec " + Configuration.globalConfig.hermesWorkflowContainerName + " rm -rf /home/user/Hermes", true, false);
         executeCommand("docker exec " + Configuration.globalConfig.hermesWorkflowContainerName + " git clone " + Configuration.globalConfig.gitCodeRepo, true, false);
         executeCommand("docker exec " + Configuration.globalConfig.hermesWorkflowContainerName + " mv ./HermesComponents ./Hermes", true, false);
-
+        
     }
-
+    
     public int executeCommand(String command, boolean suppressOutput, boolean supressErrorOutput) throws IOException {
         Session sess = conn.openSession();
         sess.execCommand(command);
@@ -572,7 +573,7 @@ public class ExecutionSite extends Thread implements Comparable<ExecutionSite> {
         InputStream stderr = new StreamGobbler(sess.getStderr());
         BufferedReader stdoutReader = new BufferedReader(new InputStreamReader(stdout));
         BufferedReader stderrReader = new BufferedReader(new InputStreamReader(stderr));
-
+        
         if (!suppressOutput) {
             while (true) {
                 String line = stdoutReader.readLine();
@@ -599,7 +600,20 @@ public class ExecutionSite extends Thread implements Comparable<ExecutionSite> {
         sess.close();
         return sessionStatus;
     }
-
+    
+    public void sendHeartBeat() throws IOException {
+        JobRequest heartbeat = new JobRequest();
+        heartbeat.isHeartBeat = true;
+        Gson gson = new Gson();
+        Socket client = new Socket(tunnelIP, masterTunnelPortCommunications);
+        OutputStream outToServer = client.getOutputStream();
+        DataOutputStream out = new DataOutputStream(outToServer);
+        out.writeUTF(gson.toJson(heartbeat));
+        out.close();
+        client.close();
+        
+    }
+    
     public void passCommandToClientWithinContainer(String command, Component component, Integer retries) {//String message, String serverName, Integer port, Integer retries) {
         if (component != null) {
             HermesLogKeeper.logSender("---SENDING--- --" + (new Date()).toString() + "-- @ " + name + "  Component: " + component.name + " command: " + command);
@@ -620,7 +634,7 @@ public class ExecutionSite extends Thread implements Comparable<ExecutionSite> {
             System.out.println("Connection exception connecting to container daemon on site.." + name);
             System.out.println("Error: " + e);
             System.out.println("Attempting to re-establish connection.., attempt:" + retries);
-
+            
             try {
                 sleep(3000);
             } catch (InterruptedException ex) {
@@ -631,15 +645,15 @@ public class ExecutionSite extends Thread implements Comparable<ExecutionSite> {
             passCommandToClientWithinContainer(command, component, retries);
         }
     }
-
+    
     public void revert() {
         availableSlots = siteThreadCount;
     }
-
+    
     private static synchronized void incrementMasterPortForwardsToSitesStartFrom() {
         masterPortForwardsToSitesStartFrom++;
     }
-
+    
     @Override
     public int compareTo(ExecutionSite o) {
         if (cpuMultithreadedScore > o.cpuMultithreadedScore) {
@@ -650,5 +664,5 @@ public class ExecutionSite extends Thread implements Comparable<ExecutionSite> {
             return 0;
         }
     }
-
+    
 }

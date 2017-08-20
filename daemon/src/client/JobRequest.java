@@ -16,6 +16,8 @@
 package client;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  *
@@ -34,10 +36,11 @@ public class JobRequest {
     public boolean inputOutputFileAssessment;
     public boolean terminate = false;
     public boolean jobIsFileTransfer = false;
+    public String receivingFile = "";
     public boolean isHeartBeat = false;
     public Integer slotsUsed;
     public String resourceName;
-    public long killProcessAvailMemoryLimit = 400000L;
+    public long killProcessAvailMemoryLimit = 200000L;
 
     public ArrayList<Integer> outputDataFileIds = new ArrayList<Integer>();
     public ArrayList<String> outputDataFilePaths = new ArrayList<String>();
@@ -45,8 +48,8 @@ public class JobRequest {
     public ArrayList<Integer> inputDataFileIds = new ArrayList<Integer>();
     //public ArrayList<String> inputDataFilePaths = new ArrayList<String>();
 
-    public String inputsRealFileSizesInB;
-    public String inputsRealFileSizesCustom;
+    //public String inputsRealFileSizesInB;
+    //public String inputsRealFileSizesCustom;
     public boolean NodeExecutionThreadFinalized = false;
 
     public String threadsAssigned;
@@ -55,5 +58,7 @@ public class JobRequest {
     public String systemRAMSizeInMB;
     public String cpuSingleThreadedBenchmark;
     public String cpuMultiThreadedBenchmark;
+    
+    public Map<String, Map<String,String>> jobInputFileMetrics = new HashMap<String, Map<String,String>>();
 
 }

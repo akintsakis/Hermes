@@ -1,0 +1,9 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<component>
+<name>annotateProteins</name>
+<path>/Hermes/Components/annotateProteins/annotateProteins.jar</path>
+<path2></path2>
+<execCommand>java -jar</execCommand>
+<slots>1</slots>
+<defaultRunTimeInMs>10</defaultRunTimeInMs>
+</component>

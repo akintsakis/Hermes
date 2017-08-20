@@ -107,6 +107,7 @@ public class NodeExecutionThread extends Thread {
             JobRequest jobRequest = new JobRequest();
             jobRequest.command = command;
             jobRequest.jobIsFileTransfer = true;
+            jobRequest.receivingFile = destinationPath;
             jobRequest.NodeExecutionThreadId = String.valueOf(id);
             node.component.executedOnResource.passCommandToClientWithinContainer(gson.toJson(jobRequest), node.component, 3);
             NodeExecutionThreadQueue.waitFor();
@@ -122,6 +123,7 @@ public class NodeExecutionThread extends Thread {
             jobRequestFileTransfer.command = command;
             jobRequestFileTransfer.NodeExecutionThreadId = String.valueOf(id);
             jobRequestFileTransfer.jobIsFileTransfer = true;
+            jobRequestFileTransfer.receivingFile = destinationPath;
             node.component.executedOnResource.passCommandToClientWithinContainer(gson.toJson(jobRequestFileTransfer), node.component, 3);
 
             NodeExecutionThreadQueue.waitFor();
@@ -136,14 +138,14 @@ public class NodeExecutionThread extends Thread {
             node.component.command = "sh;-c;" + node.component.command.substring(6, node.component.command.length()).replace(";", " ");
         }
 
-        StringBuilder bytesSB = new StringBuilder();
-        StringBuilder customSB = new StringBuilder();
-        for (int i = 0; i < node.component.inputDataFiles.size(); i++) {
-            bytesSB.append(String.valueOf(node.component.inputDataFiles.get(i).realFileSizeInB)).append(" ");
-        }
-        for (int i = 0; i < node.component.inputDataFiles.size(); i++) {
-            customSB.append(String.valueOf(node.component.inputDataFiles.get(i).realFileSizeCustom)).append(" ");
-        }
+//        StringBuilder bytesSB = new StringBuilder();
+//        StringBuilder customSB = new StringBuilder();
+//        for (int i = 0; i < node.component.inputDataFiles.size(); i++) {
+//            bytesSB.append(String.valueOf(node.component.inputDataFiles.get(i).realFileSizeInB)).append(" ");
+//        }
+//        for (int i = 0; i < node.component.inputDataFiles.size(); i++) {
+//            customSB.append(String.valueOf(node.component.inputDataFiles.get(i).realFileSizeCustom)).append(" ");
+//        }
 
         //JSONObject jsonCommand = new JSONObject();
         JobRequest jobRequest = new JobRequest();
@@ -165,10 +167,11 @@ public class NodeExecutionThread extends Thread {
         for (int i = 0; i < node.component.inputDataFiles.size(); i++) {
             jobRequest.inputDataFileIds.add(node.component.inputDataFiles.get(i).id);
             //jobRequest.inputDataFilePaths.add(node.component.inputDataFiles.get(i).pathInResource.get(node.component.executedOnResource));
+            jobRequest.jobInputFileMetrics.put(String.valueOf(node.component.inputDataFiles.get(i).id), node.component.inputDataFiles.get(i).metrics);
         }
 
-        jobRequest.inputsRealFileSizesInB = bytesSB.toString();
-        jobRequest.inputsRealFileSizesCustom = customSB.toString();
+        //jobRequest.inputsRealFileSizesInB = bytesSB.toString();
+        //jobRequest.inputsRealFileSizesCustom = customSB.toString();
         jobRequest.NodeExecutionThreadId = String.valueOf(id);
         jobRequest.NodeExecutionThreadFinalized = true;
         if (node.component.runningWithNumOfThreads != null) {

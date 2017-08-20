@@ -158,24 +158,26 @@ public class Client {
             incoming = waitForCommand();
             System.out.println(incoming);
             JobRequest jobRequest = gson.fromJson(incoming, JobRequest.class);
-            String[] tmp = incoming.split("_EOC_");
 
-            if (terminateTrue(jobRequest)) {
+            if (jobRequest.isHeartBeat) {
+
+            } else if (jobRequest.terminate) {
                 terminateClient(wr1, startTime);
                 break;
+            } else {
+                Slave t = new Slave(threadIdCount++, jobRequest, wr1, wrapper, monitor, baseDir, componentRuntimeLogs, diskLog, topLog);
+                t.start();
             }
-            Slave t = new Slave(threadIdCount++, jobRequest, wr1, wrapper, monitor, baseDir, componentRuntimeLogs, diskLog, topLog);
-            t.start();
 
         }
     }
 
-    public static Boolean terminateTrue(JobRequest jobRequest) {
-        if (jobRequest.terminate) {
-            return true;
-        }
-        return false;
-    }
+//    public static Boolean terminateTrue(JobRequest jobRequest) {
+//        if (jobRequest.terminate) {
+//            return true;
+//        }
+//        return false;
+//    }
 
     public static void talker(String message, String serverName, String portString) {
         //String serverName = "Node1";

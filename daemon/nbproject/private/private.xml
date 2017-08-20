@@ -4,8 +4,9 @@
     <open-files xmlns="http://www.netbeans.org/ns/projectui-open-files/2">
         <group>
             <file>file:/home/thanos/Dropbox/Code/Hermes/Hermes/daemon/src/client/JobResponse.java</file>
-            <file>file:/home/thanos/Dropbox/Code/Hermes/Hermes/daemon/src/client/ParseTop.java</file>
+            <file>file:/home/thanos/Dropbox/Code/Hermes/Hermes/daemon/src/client/DataFileEvaluationFunctions.java</file>
             <file>file:/home/thanos/Dropbox/Code/Hermes/Hermes/daemon/src/client/JobRequest.java</file>
+            <file>file:/home/thanos/Dropbox/Code/Hermes/Hermes/daemon/src/client/Client.java</file>
             <file>file:/home/thanos/Dropbox/Code/Hermes/Hermes/daemon/src/client/Slave.java</file>
         </group>
     </open-files>

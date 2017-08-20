@@ -51,6 +51,7 @@ public class WorkflowTree implements Serializable {
 
     public ArrayList<ExecutionSite> resources;
     public ArrayList<ExecutionSite> availableResources = new ArrayList<ExecutionSite>();
+    public static boolean workflowComplete = false;
 
     WorkflowTree(TreeNode root, ArrayList<ExecutionSite> resources) throws IOException {
         this.resources = resources;
@@ -122,6 +123,7 @@ public class WorkflowTree implements Serializable {
         System.out.println("All done, master finished");
         System.out.println("Total data transferred: " + (totalDataTransferAsInputFiles / (1024.0 * 1024.0)) + " MB");
         System.out.println("Workflow Duration: " + ((System.currentTimeMillis() - startTime) / 1024) + " s");
+        workflowComplete = true;
 
     }
 

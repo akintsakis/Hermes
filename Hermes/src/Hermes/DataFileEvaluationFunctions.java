@@ -16,7 +16,6 @@
  * Author: Athanassios Kintsakis
  * contact: akintsakis@issel.ee.auth.gr athanassios.kintsakis@gmail.com
  */
-
 package Hermes;
 
 import java.io.BufferedReader;
@@ -24,29 +23,55 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
-
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class DataFileEvaluationFunctions {
-    
-   public static final String fasta = ".fasta";
+
+    public static final String fasta = ".fasta";
     public static final String blastp = ".blastp";
     public static final String blastproteindb = ".blastdbprotein";
 
-    public static String selector(String filename) throws IOException {   
-        String sizeOfFile = "none";
-        if (filename.contains(fasta)) {
-            sizeOfFile = countBasesFasta(filename);
-        } else if (filename.contains(blastp)) {
-            sizeOfFile = countLines(filename);
-        } else if (filename.contains(blastproteindb)) {
-            //sizeOfFile = inheritCustomSizeOfInput1(filename);
-        }  else {
-            sizeOfFile = countLines(filename);
-            //jobResponse.customOutputSizeDefaultCountLines = true;
+    public static void selector(String filename, Map<String, String> metrics, boolean advancedEval) throws IOException {
+        if (advancedEval) {
+            if (filename.endsWith(fasta)) {
+                metrics.putAll(countBasesSeqsFasta(filename));
+            } else if (filename.contains(blastp)) {
+                metrics.put("lines", countLines(filename));
+            } else if (filename.contains(blastproteindb)) {
+                //sizeOfFile = inheritCustomSizeOfInput1(filename);
+            } else {
+                metrics.put("lines", countLines(filename));
+            }
         }
-        return sizeOfFile;
+        metrics.put(DataFile.fileSizeKey, getFileSizeInBytes(filename));
+        //System.out.println(metrics.get(DataFile.fileSizeKey));
     }
-    
+
+    public static String getFileSizeInBytes(String file) {
+        File currentOutput = new File(file);
+        String fileSize = "0";
+
+        if (!currentOutput.exists()) {
+            Path folder = currentOutput.getParentFile().toPath();
+            try {
+                fileSize = String.valueOf(Files.walk(folder)
+                        .filter(p -> p.toFile().isFile())
+                        .mapToLong(p -> p.toFile().length())
+                        .sum());
+            } catch (IOException ex) {
+                Logger.getLogger(DataFileEvaluationFunctions.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        } else {
+            fileSize = String.valueOf(currentOutput.length());
+        }
+        return fileSize;
+    }
+
     public static String countLines(String file) throws IOException {
         BufferedReader reader = new BufferedReader(new FileReader(new File(file)));
         int lines = 0;
@@ -57,17 +82,27 @@ public class DataFileEvaluationFunctions {
         return String.valueOf(lines);
     }
 
-
-    public static String countBasesFasta(String path) throws FileNotFoundException, IOException {
+    public static Map<String, String> countBasesSeqsFasta(String path) throws FileNotFoundException, IOException {
+        Map<String, String> metrics = new HashMap<String, String>();
         File f = new File(path);
-        BufferedReader r1 = new BufferedReader(new FileReader(f.getAbsolutePath()));        
+        BufferedReader r1 = new BufferedReader(new FileReader(f.getAbsolutePath()));
         String line;
-        int totalBases = 0;
+        long totalBases = 0;
+        long totalSeqs = 0;
+        long totalLines = 0;
         while ((line = r1.readLine()) != null) {
             if (!line.contains(">")) {
                 totalBases = totalBases + line.length();
+            } else if (line.startsWith(">")) {
+                totalSeqs++;
             }
-        }   
-        return String.valueOf(totalBases);
-    }    
+            totalLines++;
+        }
+        metrics.put("sequences", String.valueOf(totalSeqs));
+        metrics.put("bases", String.valueOf(totalBases));
+        metrics.put("lines", String.valueOf(totalLines));
+
+        return metrics;
+    }
+
 }
