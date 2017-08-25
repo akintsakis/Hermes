@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package Models;
+package MLServerConnection;
 
 import Hermes.JobResponse;
 import java.io.BufferedWriter;
@@ -29,7 +29,7 @@ import java.util.Map;
  *
  * @author thanos
  */
-public class Parsers {
+public class BuildComponentDatasets {
 
     final static String runtimeDatasetIdentifier = "_runtime";
     final static String failureDatasetIdentifier = "_failure";
@@ -52,7 +52,7 @@ public class Parsers {
         for (int i = 0; i < files.length; i++) {
             JsonReader reader = new JsonReader(new FileReader(files[i]));
             JobResponse jobResponse = gson.fromJson(reader, JobResponse.class);
-
+            //MLServerConnectionUtils.submitJsonObject(gson.toJson(jobResponse));
             StringBuilder line = new StringBuilder();
 
             line.append(jobResponse.jobRequest.cpuMultiThreadedBenchmark).append(",");

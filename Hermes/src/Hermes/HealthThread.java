@@ -42,19 +42,15 @@ public class HealthThread extends Thread {
 
         while (!WorkflowTree.workflowComplete) {
             try {
-                sleep(600000);
+                sleep(120000);
             } catch (InterruptedException ex) {
                 Logger.getLogger(HealthThread.class.getName()).log(Level.SEVERE, null, ex);
             }
 
             ArrayList<String> heartbeatsOk = new ArrayList<String>();
             for (ExecutionSite site : resources) {
-                try {
-                    site.sendHeartBeat();
-                    heartbeatsOk.add(site.name);
-                } catch (IOException ex) {
-                    System.out.println("Site: " + site.name + " heartbeat failed");
-                }
+                site.sendHeartBeat();
+                heartbeatsOk.add(site.name);
             }
             System.out.print("Heartbeats ok: ");
             for (String s : heartbeatsOk) {

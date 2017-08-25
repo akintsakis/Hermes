@@ -601,17 +601,11 @@ public class ExecutionSite extends Thread implements Comparable<ExecutionSite> {
         return sessionStatus;
     }
     
-    public void sendHeartBeat() throws IOException {
+    public void sendHeartBeat() {
         JobRequest heartbeat = new JobRequest();
         heartbeat.isHeartBeat = true;
-        Gson gson = new Gson();
-        Socket client = new Socket(tunnelIP, masterTunnelPortCommunications);
-        OutputStream outToServer = client.getOutputStream();
-        DataOutputStream out = new DataOutputStream(outToServer);
-        out.writeUTF(gson.toJson(heartbeat));
-        out.close();
-        client.close();
-        
+        Gson gson = new Gson();        
+        passCommandToClientWithinContainer(gson.toJson(heartbeat), null, 3);
     }
     
     public void passCommandToClientWithinContainer(String command, Component component, Integer retries) {//String message, String serverName, Integer port, Integer retries) {

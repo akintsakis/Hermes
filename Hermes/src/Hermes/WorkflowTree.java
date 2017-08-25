@@ -59,7 +59,15 @@ public class WorkflowTree implements Serializable {
         root.executionCompleted = true;
         getAllNodes(root);
         allNodesCheck = null;
+        assignAllNodeNumOfDependants();
         workflowIdentifier = new Date().toString();
+    }
+    
+    public void assignAllNodeNumOfDependants() {
+        for(Map.Entry<Integer, TreeNode> entry : allNodes.entrySet()) {
+          entry.getValue().numberOfDependants = entry.getValue().setNumberOfDependentComponentsRecursively(entry.getValue().children, 0, new HashMap<Integer, String>());
+          //System.out.println( entry.getValue().component.id +entry.getValue().component.name + " " +entry.getValue().numberOfDependants);
+        }
     }
 
     public void getAllNodes(TreeNode a) {

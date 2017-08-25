@@ -18,7 +18,7 @@
  */
 package Hermes;
 
-import Models.Parsers;
+import MLServerConnection.BuildComponentDatasets;
 import java.io.DataOutputStream;
 import java.io.File;
 import java.io.FilenameFilter;
@@ -38,7 +38,7 @@ public class Hermes {
     public static Hermes hermes;
     public HashMap<String, String> availableComponents = new HashMap<String, String>();
     public ArrayList<ExecutionSite> resources;
-    public HashMap<Component, TreeNode> componentToTreeNode = new HashMap<Component, TreeNode>();
+    //public HashMap<Component, TreeNode> componentToTreeNode = new HashMap<Component, TreeNode>();
 
     public IncomingCommunicatorThread comms;
     private FileRetriever fileRetriever;
@@ -168,7 +168,7 @@ public class Hermes {
 
     public static void main(String[] args) throws IOException, InterruptedException, Exception {
 
-        //Parsers.createDatasets("/home/thanos/Dropbox/Code/Hermes/Hermes/ComponentExecutionLogs/blastProteinDistributed", "blastProteinDistributed", "/home/thanos/Dropbox/Code/Hermes/Hermes/Models/Datasets");
+        //BuildComponentDatasets.createDatasets("/home/thanos/Dropbox/Code/Hermes/Hermes/ComponentExecutionLogs/blastProteinDistributed", "blastProteinDistributed", "/home/thanos/Dropbox/Code/Hermes/Hermes/Models/Datasets");
         //System.exit(0);
 
         hermes = new Hermes(args);

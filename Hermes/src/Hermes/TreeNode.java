@@ -19,6 +19,7 @@
 package Hermes;
 
 import java.util.ArrayList;
+import java.util.Map;
 
 public class TreeNode implements Comparable<TreeNode> {
 
@@ -33,6 +34,7 @@ public class TreeNode implements Comparable<TreeNode> {
     ArrayList<TreeNode> parents;
     public Component component;
     boolean executionCompleted = false;
+    long numberOfDependants;
 
     TreeNode(Component component, ArrayList<TreeNode> dependencies) {
         this.id = globalNodeId++;
@@ -64,5 +66,17 @@ public class TreeNode implements Comparable<TreeNode> {
         } else {
             return 0;
         }
+    }
+
+    public long setNumberOfDependentComponentsRecursively(ArrayList<TreeNode> children, long numOfDependants, Map<Integer, String> alreadyAdded) {
+
+        for (TreeNode n : children) {
+            if(!alreadyAdded.containsKey(n.component.id)) {
+                numOfDependants++;
+                alreadyAdded.put(n.component.id, "");
+            }
+            numOfDependants = setNumberOfDependentComponentsRecursively(n.children, numOfDependants, alreadyAdded);
+        }
+        return numOfDependants;
     }
 }
