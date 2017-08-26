@@ -25,7 +25,7 @@ import java.nio.file.Paths;
 import java.util.Date;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import net.neoremind.sshxcute.exception.TaskExecFailException;
+//import net.neoremind.sshxcute.exception.TaskExecFailException;
 
 public class NodeExecutionThread extends Thread {
 
@@ -58,8 +58,6 @@ public class NodeExecutionThread extends Thread {
 
         } catch (InterruptedException ex) {
             Logger.getLogger(NodeExecutionThread.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (TaskExecFailException ex) {
-            Logger.getLogger(NodeExecutionThread.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
 
@@ -75,7 +73,7 @@ public class NodeExecutionThread extends Thread {
 
     }
 
-    public void satisfyInputDependencies() throws TaskExecFailException, InterruptedException {
+    public void satisfyInputDependencies() throws InterruptedException {
         for (DataFile file : node.component.inputDataFiles) {
             sleep(300);
             file.resourceLocks.get(node.component.executedOnResource).lock();

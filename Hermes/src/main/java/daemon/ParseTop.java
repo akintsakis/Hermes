@@ -16,7 +16,9 @@
  * Author: Athanassios Kintsakis
  * contact: akintsakis@issel.ee.auth.gr athanassios.kintsakis@gmail.com
  */
-package client;
+package daemon;
+
+import Hermes.JobResponse;
 
 import java.io.BufferedReader;
 import java.io.File;

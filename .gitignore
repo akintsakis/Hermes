@@ -2,3 +2,6 @@
 *~
 WorkflowRunLogs/
 ComponentExecutionLogs/
+Hermes/.idea
+Hermes/target
+Hermes/Hermes.iml

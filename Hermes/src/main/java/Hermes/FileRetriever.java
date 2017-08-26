@@ -33,7 +33,6 @@ import java.util.ArrayList;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import net.neoremind.sshxcute.exception.TaskExecFailException;
 
 public class FileRetriever extends Thread {
 
@@ -294,8 +293,6 @@ public class FileRetriever extends Thread {
             Hermes.hermes.killAllResources();
             System.exit(0);
         } catch (IOException ex) {
-            Logger.getLogger(FileRetriever.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (TaskExecFailException ex) {
             Logger.getLogger(FileRetriever.class.getName()).log(Level.SEVERE, null, ex);
         }
     }

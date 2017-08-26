@@ -31,7 +31,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.CyclicBarrier;
-import net.neoremind.sshxcute.exception.TaskExecFailException;
 
 public class Hermes {
 
@@ -81,7 +80,7 @@ public class Hermes {
 
     }
 
-    void killAllResources() throws IOException, TaskExecFailException {
+    void killAllResources() throws IOException {
         for (ExecutionSite a : resources) {
             a.shutDownResource();
         }

@@ -16,12 +16,11 @@
  * Author: Athanassios Kintsakis
  * contact: akintsakis@issel.ee.auth.gr athanassios.kintsakis@gmail.com
  */
-package client;
+package daemon;
 
-import static client.Client.talker;
-import static client.Client.waitForCommand;
+import Hermes.JobRequest;
+import Hermes.JobResponse;
 import com.google.gson.Gson;
-
 import java.net.*;
 import java.io.*;
 import java.nio.charset.StandardCharsets;

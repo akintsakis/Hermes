@@ -16,7 +16,7 @@
  * Author: Athanassios Kintsakis
  * contact: akintsakis@issel.ee.auth.gr athanassios.kintsakis@gmail.com
  */
-package client;
+package daemon;
 
 import java.net.ServerSocket;
 
