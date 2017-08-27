@@ -19,6 +19,11 @@
 package Hermes;
 
 import MLServerConnection.BuildComponentDatasets;
+import MLServerConnection.MLServerConnectionUtils;
+import MLServerConnection.Model;
+import MLServerConnection.Sample;
+import com.google.gson.Gson;
+
 import java.io.DataOutputStream;
 import java.io.File;
 import java.io.FilenameFilter;
@@ -35,9 +40,10 @@ import java.util.concurrent.CyclicBarrier;
 public class Hermes {
 
     public static Hermes hermes;
+    public static Gson gson = new Gson();
     public HashMap<String, String> availableComponents = new HashMap<String, String>();
     public ArrayList<ExecutionSite> resources;
-    //public HashMap<Component, TreeNode> componentToTreeNode = new HashMap<Component, TreeNode>();
+    public boolean mockExecution = false;
 
     public IncomingCommunicatorThread comms;
     private FileRetriever fileRetriever;
@@ -167,7 +173,29 @@ public class Hermes {
 
     public static void main(String[] args) throws IOException, InterruptedException, Exception {
 
-        //BuildComponentDatasets.createDatasets("/home/thanos/Dropbox/Code/Hermes/Hermes/ComponentExecutionLogs/blastProteinDistributed", "blastProteinDistributed", "/home/thanos/Dropbox/Code/Hermes/Hermes/Models/Datasets");
+//        Model.createComponentModels("blastProteinDistributed");
+//        Model.createComponentModels("annotateProteins");
+//        Model.createComponentModels("assignIDsToFastaFile");
+//        Model.createComponentModels("analyzeMCLout");
+//        Model.createComponentModels("catFiles");
+//        Model.createComponentModels("makeBlastProteinDB");
+//        Model.createComponentModels("mclBlastProtein");
+//        Model.createComponentModels("phylogeneticProfiles");
+
+//        for(Map.Entry<String, Model> entry: Model.models.entrySet()) {
+//            MLServerConnectionUtils.buildModel(entry.getValue());
+//        }
+
+//        double value = MLServerConnectionUtils.classifyInstance("blastProteinDistributed_runtime","0.04975,0.02264,4,7200,1999.8,4,417606,610478,1364,9002,157611157,230579190,317255269,3380227,503530");
+//        System.out.println(value);
+//        value = MLServerConnectionUtils.classifyInstance("blastProteinDistributed_failure","0.01228,0.02210,1,7200,992.4,1,2030878,2890147,6308,43316,160100578,234261111,322037408,3430523,509565");
+//        //classifier returns probability of success
+//        System.out.println(value);
+
+//        double value = MLServerConnectionUtils.classifyInstance("makeBlastProteinDB_output_0_input_0_sequences","0.05011,0.02221,4,7200,1999.8,4,375033816,356035654,863365,5758951");
+        //classifier returns probability of success
+//        System.out.println(value);
+
         //System.exit(0);
 
         hermes = new Hermes(args);
@@ -191,6 +219,7 @@ public class Hermes {
         GraphmlToTreeNodes graphToTreeWorkflow = new GraphmlToTreeNodes(hermes.workflowGraphMlInput);
         graphToTreeWorkflow.createWorkflowFromGraphRecursively(graphToTreeWorkflow.graphMlRoot);
         hermes.workflow = new WorkflowTree(graphToTreeWorkflow.root, hermes.resources);
+        //hermes.workflow.
         System.out.println("Worfklow is loaded!");
 
         System.out.println("Transferring initial inputs to default container...");

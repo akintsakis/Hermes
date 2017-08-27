@@ -22,7 +22,9 @@ import java.util.ArrayList;
  * @author thanos
  */
 public class Sample {
-    ArrayList<Feature> features = new ArrayList<Feature>();
-    String target;
+    public String fileUrl;
+    public String featuresVectorCsv;
+    public String modelId;
+    public String predictionType;
     
 }

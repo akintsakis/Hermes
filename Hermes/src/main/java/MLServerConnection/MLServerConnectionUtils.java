@@ -16,6 +16,7 @@
 package MLServerConnection;
 
 import com.google.gson.Gson;
+
 import java.io.BufferedReader;
 import java.io.DataOutputStream;
 import java.io.InputStream;
@@ -27,12 +28,31 @@ import java.net.URLConnection;
 import java.net.URLEncoder;
 
 /**
- *
  * @author thanos
  */
 public class MLServerConnectionUtils {
 
-    public static void submitJsonObject(String jsonObject) {
+    public static void launchServer() {
+
+    }
+
+    public static void buildModel(Model m) {
+        Sample s = new Sample();
+        s.modelId = m.id;
+        s.predictionType = m.predictionType;
+        s.fileUrl = m.dataSetPath.replaceAll("/", ";");
+        submitJsonObject(s, "build_model");
+    }
+
+    public static double classifyInstance(String modelId, String featureVectorCsv) {
+        Sample s = new Sample();
+        s.modelId = modelId;
+        s.featuresVectorCsv = featureVectorCsv;
+        String result = submitJsonObject(s, "classify_sample");
+        return Double.parseDouble(result);
+    }
+
+    public static String submitJsonObject(Sample s, String endPoint) {
         // public static String excutePost(String targetURL, String urlParameters)
         //URL url;
         HttpURLConnection connection = null;
@@ -43,20 +63,20 @@ public class MLServerConnectionUtils {
         //String json = gson.toJson(proj);
         //Then credentials and send string
         //String send_string = usr.getUserEmail()+"+++++"+usr.getUserHash();
-        Feature f1 = new Feature("length","10");
-        Feature f2 = new Feature("size","5");
-        Sample s = new Sample();
-        s.features.add(f1);
-        s.features.add(f2);
-        s.target = "setia";
+//        Feature f1 = new Feature("length", "10");
+//        Feature f2 = new Feature("size", "5");
+//        Sample s = new Sample();
+//        s.features.add(f1);
+//        s.features.add(f2);
+//        s.target = "setia";
         Gson g = new Gson();
-        
+        StringBuilder result = new StringBuilder();
         try {
             //Create connection
-            StringBuilder result = new StringBuilder();
-            System.out.println(jsonObject);
 
-            URL url = new URL("http://localhost:5000/classify_sample/" + g.toJson(s));
+            //System.out.println(jsonObject);
+
+            URL url = new URL("http://localhost:5000/" + endPoint + "/" + g.toJson(s));
             HttpURLConnection conn = (HttpURLConnection) url.openConnection();
             conn.setRequestMethod("GET");
             BufferedReader rd = new BufferedReader(new InputStreamReader(conn.getInputStream()));
@@ -65,7 +85,8 @@ public class MLServerConnectionUtils {
                 result.append(line);
             }
             rd.close();
-            System.out.println(result.toString());
+
+            //System.out.println(result.toString());
         } catch (Exception e) {
             e.printStackTrace();
             //return null;
@@ -74,6 +95,7 @@ public class MLServerConnectionUtils {
                 connection.disconnect();
             }
         }
+        return result.toString();
     }
 
 }

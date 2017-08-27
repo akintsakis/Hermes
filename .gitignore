@@ -5,3 +5,6 @@ ComponentExecutionLogs/
 Hermes/.idea
 Hermes/target
 Hermes/Hermes.iml
+Sites
+Models
+*.pyc

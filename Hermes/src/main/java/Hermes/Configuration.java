@@ -63,6 +63,8 @@ public class Configuration {
     public final String dockerbuildfile;
     //public final String initialInputsFolderPathOnMaster;
     public final String locationOfHermesRootFolder;
+    public final String locationOfHermesComponentExecutionLogs;
+    public final String locationOfComponentModelDatasets;
     public final String componentDescriptions;
     public final String componentRuntimeDatasets;
 
@@ -122,6 +124,8 @@ public class Configuration {
         locationOfHermesRootFolder = (new File(Hermes.class.getProtectionDomain().getCodeSource().getLocation().getPath())).getParentFile().getParentFile().getParentFile().toString() + "/";
         System.out.println("Hermes root foler: " + locationOfHermesRootFolder);
         resourcesFolder = locationOfHermesRootFolder + "Sites/";
+        locationOfHermesComponentExecutionLogs = locationOfHermesRootFolder + "ComponentExecutionLogs/";
+        locationOfComponentModelDatasets = locationOfHermesRootFolder + "Models/Datasets/";
         configFile = locationOfHermesRootFolder + "configuration.config";
         dockerbuildfile = locationOfHermesRootFolder + "/InternalDockerFile/Dockerfile";
         workflowTemporarySshKeyToAccessContainers = locationOfHermesRootFolder + "/currentWorkflowGeneratedIdentityKey";
