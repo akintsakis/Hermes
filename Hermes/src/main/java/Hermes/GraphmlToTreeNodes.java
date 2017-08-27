@@ -238,7 +238,7 @@ public class GraphmlToTreeNodes {
                                 System.out.println(f.getAbsolutePath());
                                 System.exit(1);
                             }
-                            DataFileEvaluationFunctions.selector(f.getAbsolutePath(), file.metrics, Configuration.globalConfig.inputOutputFileAssessment);
+                            DataFileEvaluationFunctions.selector(f.getAbsolutePath(), file.metrics, Configuration.globalConfig.inputOutputFileAssessment, null);
 
 //                            if (file.realFileSizeInB == 0.0) {
 //                                System.out.println("FATAL ERROR, initial input size and custom size values not set");
@@ -285,7 +285,7 @@ public class GraphmlToTreeNodes {
                                 DataFile file = new DataFile(relativePath, fileType, isInitialInput, isFinalOutputBool, isDir);
                                 File f = new File(file.pathInResource.get(DataFile.initResourceNode));
 
-                                DataFileEvaluationFunctions.selector(f.getAbsolutePath(), file.metrics, Configuration.globalConfig.inputOutputFileAssessment);
+                                DataFileEvaluationFunctions.selector(f.getAbsolutePath(), file.metrics, Configuration.globalConfig.inputOutputFileAssessment, null);
 
 //                                if (file.realFileSizeInB == 0.0) {//|| file.realFileSizeCustom == 0.0) {
 //                                    System.out.println("FATAL ERROR, initial input size and custom size values not set");

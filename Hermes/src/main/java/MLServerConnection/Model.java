@@ -64,29 +64,32 @@ public class Model {
 
         ArrayList<String[]> orderedInputMetricNames = new ArrayList<String[]>();
         ArrayList<String[]> orderedOutputMetricNames = new ArrayList<String[]>();
-        long maxVariableFeatures = 0;
         boolean once = true;
         for (int i = 0; i < files.length; i++) {
-            long variableFeatures = 0;
             JsonReader reader = new JsonReader(new FileReader(files[i]));
             JobResponse jobResponse = gson.fromJson(reader, JobResponse.class);
 
             if (jobResponse.success) {
                 for (int j = 0; j < jobResponse.jobRequest.inputDataFileIds.size(); j++) {
                     Map<String, String> m = jobResponse.jobRequest.jobInputFileMetrics.get(String.valueOf(jobResponse.jobRequest.inputDataFileIds.get(j)));
-                    if (once) {
+
+                    if(once && jobResponse.jobRequest.componentName.equals("catFiles")) {
+                        String[] v = new String[1];
+                        v[0] = "sizeInBytes";
+                        orderedInputMetricNames.add(v);
+                    } else if (once) {
                         orderedInputMetricNames.add(m.keySet().toArray(new String[0]));
                     }
-                    variableFeatures = variableFeatures + m.keySet().size();
 
-                }
-                if (variableFeatures > maxVariableFeatures) {
-                    maxVariableFeatures = variableFeatures;
                 }
 
                 for (int j = 0; j < jobResponse.jobRequest.outputDataFileIds.size(); j++) {
                     Map<String, String> m = jobResponse.jobOutputFileMetrics.get(String.valueOf(jobResponse.jobRequest.outputDataFileIds.get(j)));
-                    if (once) {
+                    if (once && jobResponse.jobRequest.componentName.equals("catFiles")) {
+                        String[] v = new String[1];
+                        v[0] = "sizeInBytes";
+                        orderedOutputMetricNames.add(v);
+                    } else if (once) {
                         orderedOutputMetricNames.add(m.keySet().toArray(new String[0]));
                     }
 
@@ -109,19 +112,20 @@ public class Model {
             features.append(jobResponse.jobRequest.systemRAMSizeInMB).append(",");
             features.append(jobResponse.jobRequest.threadsUsedByComponent).append(",");
 
-            long variableFeatures = 0;
+            long aggregatedSizeInBytes = 0;
             for (int j = 0; j < jobResponse.jobRequest.inputDataFileIds.size(); j++) {
                 Map<String, String> m = jobResponse.jobRequest.jobInputFileMetrics.get(String.valueOf(jobResponse.jobRequest.inputDataFileIds.get(j)));
-                String[] keys = orderedInputMetricNames.get(j);
-                for (String key : keys) {
-                    features.append(m.get(key)).append(",");
-                    variableFeatures++;
+                if(!jobResponse.jobRequest.componentName.equals("catFiles")) {
+                    String[] keys = orderedInputMetricNames.get(j);
+                    for (String key : keys) {
+                        features.append(m.get(key)).append(",");
+                    }
+                } else {
+                    aggregatedSizeInBytes = aggregatedSizeInBytes + Long.parseLong(m.get("sizeInBytes"));
                 }
             }
-            if (variableFeatures < maxVariableFeatures) {
-                for (int j = 0; j < (maxVariableFeatures - variableFeatures); j++) {
-                    features.append("0").append(",");
-                }
+            if(jobResponse.jobRequest.componentName.equals("catFiles")) {
+                features.append(String.valueOf(aggregatedSizeInBytes)).append(",");
             }
 
             String success = "1";

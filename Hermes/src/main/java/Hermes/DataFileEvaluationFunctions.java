@@ -35,21 +35,37 @@ public class DataFileEvaluationFunctions {
     public static final String fasta = ".fasta";
     public static final String blastp = ".blastp";
     public static final String blastproteindb = ".blastdbprotein";
+    public static final String fileSizeKey = "sizeInBytes";
 
-    public static void selector(String filename, Map<String, String> metrics, boolean advancedEval) throws IOException {
+    public static void selector(String filename, Map<String, String> metrics, boolean advancedEval, JobRequest jobRequest) throws IOException {
         if (advancedEval) {
             if (filename.endsWith(fasta)) {
                 metrics.putAll(countBasesSeqsFasta(filename));
             } else if (filename.contains(blastp)) {
                 metrics.put("lines", countLines(filename));
-            } else if (filename.contains(blastproteindb)) {
+            } else if (jobRequest!= null && jobRequest.componentName.equals("makeBlastProteinDB")) {
+                metrics.putAll(inheritInputMetrics(jobRequest));
                 //sizeOfFile = inheritCustomSizeOfInput1(filename);
             } else {
                 metrics.put("lines", countLines(filename));
             }
         }
-        metrics.put(DataFile.fileSizeKey, getFileSizeInBytes(filename));
-        //System.out.println(metrics.get(DataFile.fileSizeKey));
+        metrics.put(fileSizeKey, getFileSizeInBytes(filename));
+    }
+
+    public static Map<String, String> inheritInputMetrics(JobRequest jobRequest) {
+        Map<String, String> metrics = new HashMap<String, String>();
+
+        int count =0;
+        for (Integer i : jobRequest.inputDataFileIds) {
+            String s = String.valueOf(i);
+            for (Map.Entry<String, String> entry : jobRequest.jobInputFileMetrics.get(s).entrySet()) {
+                
+                metrics.put("input_" + count +"_"+  entry.getKey(), entry.getValue());
+            }
+            count++;
+        }
+        return metrics;
     }
 
     public static String getFileSizeInBytes(String file) {

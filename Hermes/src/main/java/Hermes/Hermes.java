@@ -181,22 +181,22 @@ public class Hermes {
 //        Model.createComponentModels("makeBlastProteinDB");
 //        Model.createComponentModels("mclBlastProtein");
 //        Model.createComponentModels("phylogeneticProfiles");
-
+//
 //        for(Map.Entry<String, Model> entry: Model.models.entrySet()) {
 //            MLServerConnectionUtils.buildModel(entry.getValue());
 //        }
-
+//
 //        double value = MLServerConnectionUtils.classifyInstance("blastProteinDistributed_runtime","0.04975,0.02264,4,7200,1999.8,4,417606,610478,1364,9002,157611157,230579190,317255269,3380227,503530");
 //        System.out.println(value);
 //        value = MLServerConnectionUtils.classifyInstance("blastProteinDistributed_failure","0.01228,0.02210,1,7200,992.4,1,2030878,2890147,6308,43316,160100578,234261111,322037408,3430523,509565");
 //        //classifier returns probability of success
 //        System.out.println(value);
-
-//        double value = MLServerConnectionUtils.classifyInstance("makeBlastProteinDB_output_0_input_0_sequences","0.05011,0.02221,4,7200,1999.8,4,375033816,356035654,863365,5758951");
-        //classifier returns probability of success
+//
+//        value = MLServerConnectionUtils.classifyInstance("makeBlastProteinDB_output_0_input_0_sequences","0.05011,0.02221,4,7200,1999.8,4,375033816,356035654,863365,5758951");
+//        //classifier returns probability of success
 //        System.out.println(value);
-
-        //System.exit(0);
+//
+//        System.exit(0);
 
         hermes = new Hermes(args);
 

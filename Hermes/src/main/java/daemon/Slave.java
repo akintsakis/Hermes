@@ -18,6 +18,7 @@
  */
 package daemon;
 
+import Hermes.DataFileEvaluationFunctions;
 import Hermes.JobRequest;
 import Hermes.JobResponse;
 import com.google.gson.Gson;
@@ -33,13 +34,9 @@ import java.io.OutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketTimeoutException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 

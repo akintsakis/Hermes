@@ -41,34 +41,34 @@ def train_model(X,Y, name):
 	return regr_rf
 
 
-#### For testing
-# parser = argparse.ArgumentParser()
-# parser.add_argument("url")
-# args = parser.parse_args()
-# url = args.url
-#
-# dataframe = pandas.read_csv(url, header = None)
-# array = dataframe.values
-# print array.shape[1]
-# num_features = array.shape[1] - 1
-# X = array[:,0:num_features]
-# Y = array[:,num_features]
-# X_trn, X_tst, Y_trn, Y_tst = train_test_split(X, Y, test_size=0.3, random_state=42)
-# print "train set is of size"+str(X_trn.shape)
-# print "test set is of size"+str(X_tst.shape)
-# seed = 7
-#
-# regr_rf = train_model(X_trn, Y_trn, 'test')
-# error = regr_rf.predict(X_tst) - Y_tst
-#
-# #print max(np.abs((Y_tst - regr_rf.predict(X_tst)) / Y_tst))
-# #print min(np.abs((Y_tst - regr_rf.predict(X_tst)) / Y_tst))
-# abs_diff=np.abs((Y_tst - regr_rf.predict(X_tst)) / Y_tst)
-#
-# print "MAPE: " + str(np.mean(abs_diff) * 100)
-# abs_diff_filtered=abs_diff[np.where(abs_diff<2)]
-# #print abs_diff_filtered.shape
-# #print abs_diff.shape
-# #print max(abs_diff_filtered)
-# #print min(abs_diff_filtered)
-# print "MAPE excluding outliers: " + str(np.mean(abs_diff_filtered) * 100)
+if __name__ == "__main__":
+	parser = argparse.ArgumentParser()
+	parser.add_argument("url")
+	args = parser.parse_args()
+	url = args.url
+
+	dataframe = pandas.read_csv(url, header = None)
+	array = dataframe.values
+	print array.shape[1]
+	num_features = array.shape[1] - 1
+	X = array[:,0:num_features]
+	Y = array[:,num_features]
+	X_trn, X_tst, Y_trn, Y_tst = train_test_split(X, Y, test_size=0.3, random_state=42)
+	print "train set is of size"+str(X_trn.shape)
+	print "test set is of size"+str(X_tst.shape)
+	seed = 7
+
+	regr_rf = train_model(X_trn, Y_trn, 'test')
+	error = regr_rf.predict(X_tst) - Y_tst
+
+	#print max(np.abs((Y_tst - regr_rf.predict(X_tst)) / Y_tst))
+	#print min(np.abs((Y_tst - regr_rf.predict(X_tst)) / Y_tst))
+	abs_diff=np.abs((Y_tst - regr_rf.predict(X_tst)) / Y_tst)
+
+	print "MAPE: " + str(np.mean(abs_diff) * 100)
+	abs_diff_filtered=abs_diff[np.where(abs_diff<2)]
+	#print abs_diff_filtered.shape
+	#print abs_diff.shape
+	#print max(abs_diff_filtered)
+	#print min(abs_diff_filtered)
+	print "MAPE excluding outliers: " + str(np.mean(abs_diff_filtered) * 100)

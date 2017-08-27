@@ -37,29 +37,30 @@ def train_model(X,Y, name):
 
 
 #### For testing
-# parser = argparse.ArgumentParser()
-# parser.add_argument("url")
-# args = parser.parse_args()
-# url = args.url
-#
-# dataframe = pandas.read_csv(url, header = None)
-# array = dataframe.values
-# print array.shape[1]
-# num_features = array.shape[1] - 1
-# X = array[:,0:num_features]
-# Y = array[:,num_features]
-# X_trn, X_tst, Y_trn, Y_tst = train_test_split(X, Y, test_size=0.3, random_state=42)
-# print "train set is of size"+str(X_trn.shape)
-# print "test set is of size"+str(X_tst.shape)
-# seed = 7
-#
-# classifier_rf = train_model(X_trn, Y_trn, 'test')
-# error = classifier_rf.predict(X_tst) - Y_tst
-#
-# preds = classifier_rf.predict(X_tst)
-# #print preds.tolist()
-# #print classifier_rf.predict_proba(X_tst).tolist()
-# print classifier_rf.feature_importances_
-# print confusion_matrix(preds, Y_tst)
-# print classifier_rf.score(X_tst,Y_tst)
-# #print cls
+if __name__ == "__main__":
+	parser = argparse.ArgumentParser()
+	parser.add_argument("url")
+	args = parser.parse_args()
+	url = args.url
+
+	dataframe = pandas.read_csv(url, header = None)
+	array = dataframe.values
+	print array.shape[1]
+	num_features = array.shape[1] - 1
+	X = array[:,0:num_features]
+	Y = array[:,num_features]
+	X_trn, X_tst, Y_trn, Y_tst = train_test_split(X, Y, test_size=0.3, random_state=42)
+	print "train set is of size"+str(X_trn.shape)
+	print "test set is of size"+str(X_tst.shape)
+	seed = 7
+
+	classifier_rf = train_model(X_trn, Y_trn, 'test')
+	error = classifier_rf.predict(X_tst) - Y_tst
+
+	preds = classifier_rf.predict(X_tst)
+	#print preds.tolist()
+	#print classifier_rf.predict_proba(X_tst).tolist()
+	print classifier_rf.feature_importances_
+	print confusion_matrix(preds, Y_tst)
+	print classifier_rf.score(X_tst,Y_tst)
+	#print cls
